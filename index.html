@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GDTI · 独立游戏开发者人格测试</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a1a; --bg2:#0a0816; --panel:#150f2b; --panel-2:#1c1538;
+    --line:#322a55; --line-soft:#251d44;
+    --ink:#e7e2ff; --muted:#8b82b8; --dim:#5f578a;
+    --pink:#ff3e7f; --cyan:#36e0c4; --amber:#ffc24b; --violet:#9d7bff;
+    --glow-pink:0 0 24px rgba(255,62,127,.45);
+    --glow-cyan:0 0 24px rgba(54,224,196,.40);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1a1238 0%, transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, #1a0f2e 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans SC", system-ui, sans-serif;
+    min-height:100vh;min-height:100dvh;display:flex;overflow-x:hidden;
+    padding:24px 16px;-webkit-font-smoothing:antialiased;
+  }
+  body::after{
+    content:"";position:fixed;top:0;right:0;bottom:0;left:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.16) 2px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  .pixel{font-family:"Press Start 2P", monospace; line-height:1.7; letter-spacing:.5px;}
+  .mono{font-family:"JetBrains Mono", monospace;}
+
+  .screen{
+    width:100%;max-width:720px;margin:auto;
+    background:linear-gradient(180deg,var(--panel) 0%, var(--bg2) 100%);
+    border:2px solid #3b3168;border-radius:6px;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.9),
+               inset 0 0 0 1px rgba(0,0,0,.5),
+               0 0 0 4px #120d24, 0 0 0 5px #2a2350;
+    overflow:hidden;position:relative;
+  }
+  /* 街机面板顶栏(替代 Mac 风格红绿灯) */
+  .topbar{display:flex;align-items:center;gap:12px;padding:9px 14px;
+    background:repeating-linear-gradient(135deg,#1b1440 0 7px,#181133 7px 14px);
+    border-bottom:2px solid #3b3168;}
+  .pwr{width:11px;height:11px;border-radius:2px;background:var(--cyan);flex:none;
+    box-shadow:0 0 10px var(--cyan), inset 0 0 0 1px rgba(255,255,255,.4);
+    animation:pulse 1.7s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .sys{display:flex;align-items:baseline;gap:9px;min-width:0;}
+  .sys .sys-name{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--amber);
+    letter-spacing:1px;text-shadow:0 0 10px rgba(255,194,75,.45);}
+  .sys .sys-sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  @media(max-width:540px){.sys .sys-sub{display:none;}}
+  .cr{margin-left:auto;flex:none;font-family:"JetBrains Mono",monospace;font-size:10.5px;
+    color:var(--cyan);background:#0a0817;border:1px solid #3b3168;border-radius:3px;padding:3px 9px;letter-spacing:1px;}
+  /* 街机底部状态条 */
+  .statusbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 14px;border-top:2px solid #3b3168;background:#0c0920;
+    font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);letter-spacing:1px;}
+  .statusbar .coin{color:var(--amber);animation:blink2 1.2s steps(1) infinite;}
+  @keyframes blink2{50%{opacity:.25;}}
+  .cur{display:inline-block;width:9px;height:19px;background:var(--cyan);margin-left:4px;
+    transform:translateY(3px);animation:blink 1.05s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  .body{padding:34px 30px 30px;}
+  @media(max-width:540px){.body{padding:26px 18px 22px;}}
+
+  .view{display:none;}
+  .view.active{display:block;animation:rise .45s cubic-bezier(.2,.8,.2,1);}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* intro */
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:3px;
+    color:var(--pink);text-transform:uppercase;margin-bottom:18px;}
+  .title{font-family:"Noto Sans SC", sans-serif;font-weight:900;font-size:40px;line-height:1.3;
+    margin:0 0 6px;letter-spacing:1px;color:#fff;text-shadow:0 2px 22px rgba(157,123,255,.4);}
+  @media(max-width:540px){.title{font-size:28px;}}
+  .title-en{font-family:"Press Start 2P", monospace;font-size:11px;color:var(--cyan);
+    letter-spacing:2px;margin-top:16px;line-height:1.7;}
+  .lede{color:var(--muted);font-size:15px;line-height:1.85;margin:22px 0 6px;max-width:56ch;}
+  .lede b{color:var(--amber);font-weight:700;}
+  .term{margin:24px 0 26px;padding:16px 18px;background:#0a0817;border:1px solid var(--line-soft);
+    border-radius:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:2;color:var(--dim);}
+  .term .ok{color:var(--cyan);} .term .warn{color:var(--amber);} .term .p{color:var(--pink);}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    font-family:"Press Start 2P",monospace;font-size:13px;line-height:1.4;color:#0c0a1a;cursor:pointer;border:none;
+    background:var(--cyan);padding:16px 26px;border-radius:10px;box-shadow:0 6px 0 #1aa792, var(--glow-cyan);
+    transition:transform .08s ease, box-shadow .08s ease, filter .15s;text-decoration:none;}
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1aa792, var(--glow-cyan);}
+  .btn.pink{background:var(--pink);box-shadow:0 6px 0 #c01f56, var(--glow-pink);}
+  .btn.pink:active{box-shadow:0 2px 0 #c01f56, var(--glow-pink);}
+  .btn.ghost{background:transparent;color:var(--muted);box-shadow:none;border:1px solid var(--line);
+    font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--violet);}
+  .btn.ghost:active{transform:translateY(2px);box-shadow:none;}
+  .start-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+  .meta-note{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);}
+
+  /* quiz */
+  .q-top{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+  .q-count{font-family:"Press Start 2P",monospace;font-size:12px;color:var(--amber);white-space:nowrap;}
+  .track{flex:1;height:10px;background:#0a0817;border:1px solid var(--line-soft);border-radius:999px;overflow:hidden;}
+  .track .fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:999px;
+    transition:width .4s cubic-bezier(.2,.8,.2,1);}
+  .q-axis{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);letter-spacing:1px;
+    margin-bottom:10px;text-transform:uppercase;}
+  .q-text{font-size:21px;font-weight:700;line-height:1.6;margin:0 0 26px;color:var(--ink);}
+  @media(max-width:540px){.q-text{font-size:18px;}}
+  .opts{display:flex;flex-direction:column;gap:14px;}
+  .opt{text-align:left;cursor:pointer;width:100%;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:12px;padding:18px 18px 18px 56px;position:relative;color:var(--ink);font-size:15.5px;
+    line-height:1.7;font-family:inherit;transition:border-color .14s, background .14s, transform .08s;}
+  .opt::before{content:attr(data-k);position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    font-family:"Press Start 2P",monospace;font-size:11px;background:#0a0817;color:var(--muted);
+    border:1px solid var(--line);transition:all .14s;}
+  .opt:hover{border-color:var(--cyan);background:#221a40;transform:translateX(3px);}
+  .opt:hover::before{background:var(--cyan);color:#0c0a1a;border-color:var(--cyan);}
+  .opt:active{transform:translateX(0) scale(.995);}
+
+  /* compiling */
+  #compiling{text-align:center;padding:36px 10px 30px;}
+  #compiling .ctitle{font-size:14px;color:var(--cyan);margin-bottom:24px;}
+  .cbar{height:14px;background:#0a0817;border:1px solid var(--line);border-radius:999px;overflow:hidden;max-width:420px;margin:0 auto;}
+  .cbar .cfill{height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--amber),var(--cyan));}
+  #clog{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--dim);margin-top:22px;min-height:20px;letter-spacing:.5px;}
+
+  /* result */
+  .r-head{text-align:center;margin-bottom:8px;}
+  .r-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
+  .r-code{font-family:"Press Start 2P",monospace;font-size:54px;line-height:1.1;margin:14px 0 6px;color:#fff;
+    text-shadow:4px 0 var(--pink), -4px 0 var(--cyan);word-break:break-word;}
+  .r-code.cjk{font-family:"Noto Sans SC",sans-serif;font-weight:900;font-size:60px;letter-spacing:4px;}
+  @media(max-width:540px){.r-code{font-size:38px;} .r-code.cjk{font-size:46px;}}
+  .r-badge{display:inline-block;margin:2px auto 0;font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:2px;color:#0c0a1a;background:var(--amber);padding:5px 14px;border-radius:999px;
+    box-shadow:0 0 22px rgba(255,194,75,.5);font-weight:700;}
+  .r-class{font-size:22px;font-weight:900;color:var(--amber);margin:4px 0 2px;}
+  .r-tag{color:var(--cyan);font-family:"JetBrains Mono",monospace;font-size:13px;margin-top:6px;}
+  .r-coord{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);margin-top:10px;letter-spacing:1px;}
+
+  /* 5x5 matrix */
+  .matrix-wrap{margin:26px 0 6px;}
+  .mx-top,.mx-bot{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);text-align:center;letter-spacing:.5px;}
+  .mx-top{margin-bottom:8px;color:var(--cyan);} .mx-bot{margin-top:8px;color:var(--pink);}
+  .matrix{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:12px;
+    background:#0a0817;border:1px solid var(--line-soft);border-radius:12px;}
+  .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:7px;
+    font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:var(--dim);
+    background:#150f2b;border:1px solid var(--line-soft);text-align:center;line-height:1.05;padding:2px;overflow:hidden;}
+  @media(max-width:540px){.cell{font-size:9px;}}
+  .cell.hi{color:#0c0a1a;background:var(--cyan);border-color:var(--cyan);
+    box-shadow:var(--glow-cyan);transform:scale(1.1);font-weight:700;}
+  .cell.legend{color:var(--amber);border-color:rgba(255,194,75,.55);background:#1a1330;}
+  .cell.legend::after{content:"★";position:absolute;top:1px;right:3px;font-size:7px;color:var(--amber);opacity:.8;}
+  .cell{position:relative;}
+  .cell.legend.hi{color:#0c0a1a;background:var(--amber);border-color:var(--amber);
+    box-shadow:0 0 26px rgba(255,194,75,.55);}
+  .cell.locked{letter-spacing:1px;}
+  .mx-x{display:flex;justify-content:space-between;margin-top:10px;
+    font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);}
+  .mx-x .mid{color:var(--dim);}
+
+  .r-bars{margin:24px 0 8px;display:flex;flex-direction:column;gap:16px;}
+  .bar-cap{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;
+    font-size:11.5px;color:var(--muted);margin-bottom:7px;}
+  .bar-cap .on{color:var(--ink);font-weight:700;}
+  .bar-track{height:12px;background:#0a0817;border:1px solid var(--line-soft);border-radius:999px;position:relative;}
+  .bar-knob{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;transform:translate(-50%,-50%);
+    background:var(--cyan);box-shadow:var(--glow-cyan);border:2px solid #0c0a1a;}
+  .bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:999px;
+    background:linear-gradient(90deg,rgba(54,224,196,.15),rgba(54,224,196,.55));}
+
+  .r-desc{margin:24px 0 0;padding:20px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line);
+    font-size:15.5px;line-height:1.95;color:#d9d4f2;}
+  .r-rel{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .rel{flex:1;min-width:200px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#100b22;}
+  .rel .rk{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:1px;margin-bottom:8px;}
+  .rel.love .rk{color:var(--cyan);} .rel.hate .rk{color:var(--pink);}
+  .rel .rn{font-family:"Press Start 2P",monospace;font-size:15px;color:var(--ink);margin-bottom:6px;}
+  .rel .rr{font-size:13px;color:var(--muted);line-height:1.7;}
+  .join{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;
+    margin-top:22px;padding:16px 18px;border:1.5px dashed rgba(255,194,75,.55);border-radius:12px;
+    background:linear-gradient(180deg,rgba(255,194,75,.07),rgba(54,224,196,.04));}
+  .join-l{min-width:180px;flex:1;}
+  .join-k{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--amber);font-weight:700;letter-spacing:.5px;}
+  .join-sub{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;}
+  .join-num{cursor:pointer;border:1px solid var(--cyan);background:#0a0817;border-radius:9px;
+    padding:9px 16px;display:flex;flex-direction:column;align-items:center;gap:3px;
+    transition:transform .08s, box-shadow .15s;}
+  .join-num:hover{box-shadow:var(--glow-cyan);}
+  .join-num:active{transform:translateY(2px);}
+  .join-num .qn{font-family:"Press Start 2P",monospace;font-size:15px;color:var(--cyan);letter-spacing:1px;}
+  .join-num .qc{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);}
+  @media(max-width:540px){.join-num{width:100%;}}
+  .statusbar .grp{cursor:pointer;color:var(--cyan);transition:color .15s;}
+  .statusbar .grp:hover{color:var(--amber);}
+  .r-actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;}
+  .r-actions .btn{flex:1;min-width:160px;}
+
+  #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+    background:var(--cyan);color:#0c0a1a;font-weight:700;font-size:13px;padding:11px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;z-index:200;font-family:"JetBrains Mono",monospace;transition:.25s;box-shadow:var(--glow-cyan);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .foot{text-align:center;font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--dim);margin-top:24px;letter-spacing:.5px;}
+
+  /* 结果页:查看典藏卡按钮(仅传说级) */
+  .card-cta{margin:16px auto 0;background:linear-gradient(90deg,var(--amber),#ff8a3d);
+    color:#1a1206;box-shadow:0 6px 0 #b46a1f, 0 0 26px rgba(255,194,75,.5);}
+  .card-cta:active{box-shadow:0 2px 0 #b46a1f, 0 0 26px rgba(255,194,75,.5);}
+
+  /* 典藏卡弹层 */
+  .card-modal{position:fixed;top:0;right:0;bottom:0;left:0;z-index:150;display:none;
+    background:rgba(6,4,16,.88);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+    padding:22px 16px;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .card-modal.on{display:flex;animation:fadein .3s;}
+  @keyframes fadein{from{opacity:0;}to{opacity:1;}}
+  .card-stage{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%;max-width:360px;margin:auto;}
+  .card-frame{position:relative;width:100%;border-radius:18px;overflow:hidden;
+    box-shadow:0 26px 64px -18px #000, 0 0 46px var(--card-accent,rgba(255,194,75,.45));
+    animation:cardin .55s cubic-bezier(.2,.9,.2,1);}
+  @keyframes cardin{from{opacity:0;transform:translateY(26px) scale(.92) rotateX(12deg);}to{opacity:1;transform:none;}}
+  .card-frame img{display:block;width:100%;height:auto;border-radius:18px;}
+  .card-sheen{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;border-radius:18px;mix-blend-mode:overlay;
+    background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.55) 48%,transparent 62%);
+    background-size:260% 260%;animation:sheen 3.4s linear infinite;}
+  @keyframes sheen{0%{background-position:150% 0;}100%{background-position:-50% 0;}}
+  .card-hint{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+  .card-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
+  .card-btns .btn{flex:1;min-width:120px;font-size:12px;padding:14px 14px;}
+
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001s !important;transition-duration:.001s !important;}}
+
+  /* ---- 移动端兜底 ---- */
+  @media(max-width:540px){
+    .screen{box-shadow:0 18px 50px -24px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.5);}
+    .cell{aspect-ratio:auto;height:11.5vw;max-height:58px;}
+    .title-en,.ctitle{word-break:break-word;}
+    .term{font-size:11px;overflow-x:auto;}
+    .r-coord{word-break:break-word;}
+    .join-l{min-width:0;}
+  }
+  @media(max-width:360px){
+    .body{padding:22px 14px 20px;}
+    .title{font-size:25px;}
+    .r-code{font-size:33px;} .r-code.cjk{font-size:40px;}
+    .cell{font-size:8px;}
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="topbar">
+    <span class="pwr"></span>
+    <span class="sys">
+      <span class="sys-name">GDTI</span>
+      <span class="sys-sub mono">gamedev-type-indicator</span>
+    </span>
+    <span class="cr mono">CR-01 · v0.2</span>
+  </div>
+
+  <div class="body">
+
+    <!-- INTRO -->
+    <section id="intro" class="view active">
+      <div class="eyebrow mono">Game Dev Type Indicator</div>
+      <h1 class="title">独立游戏开发者人格<span class="cur"></span></h1>
+      <div class="title-en">GAME DEV TYPE INDICATOR</div>
+      <p class="lede">36 道题,2 个维度,<b>25 种</b>开发者人格。<br>
+        测完你会落在一张 <b>5×5 开发者矩阵</b>的某个格子里——<br>
+        横轴是你的内核(灵魂 ⟷ 生意),纵轴是你的产出(发售之神 ⟷ 永远没开工)。<br>
+        可能是 <b>BOSS</b>,可能是 <b>POOR</b>……矩阵里还藏着 <b>3 个传说级人格</b>,<br>
+        平时只显示 <b>???</b>,只有亲手抽中才会解锁真名。</p>
+
+      <div class="term mono">
+        <div><span class="ok">$</span> ./gdti --start --questions 36</div>
+        <div><span class="dim">&gt;</span> 正在加载灵魂...&nbsp; <span class="ok">[ OK ]</span></div>
+        <div><span class="dim">&gt;</span> 正在检测拖延症...&nbsp; <span class="warn">[ FOUND ]</span></div>
+        <div><span class="dim">&gt;</span> 正在统计未发售项目...&nbsp; <span class="p">[ 47 ]</span></div>
+      </div>
+
+      <div class="start-row">
+        <button class="btn pink" onclick="GDTI.start()">▶ 开始测试</button>
+        <span class="meta-note mono">约 4 分钟 · 共 36 题 · 测完来 QQ群 1043785282 对线</span>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="quiz" class="view">
+      <div class="q-top">
+        <span class="q-count pixel" id="qCount">01/36</span>
+        <div class="track"><div class="fill" id="qFill"></div></div>
+      </div>
+      <div class="q-axis mono" id="qAxis"></div>
+      <h2 class="q-text" id="qText"></h2>
+      <div class="opts" id="qOpts"></div>
+    </section>
+
+    <!-- COMPILING -->
+    <section id="compiling" class="view">
+      <div class="ctitle pixel">COMPILING YOUR BUILD...</div>
+      <div class="cbar"><div class="cfill" id="cFill"></div></div>
+      <div id="clog" class="mono"></div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="result" class="view">
+      <div class="r-head">
+        <div class="r-label mono">你的开发者类型是</div>
+        <div class="r-badge" id="rBadge" style="display:none">★ 传说级 · LEGENDARY</div>
+        <div class="r-code pixel" id="rCode">CODE</div>
+        <div class="r-class" id="rClass"></div>
+        <div class="r-tag mono" id="rTag"></div>
+        <div class="r-coord mono" id="rCoord"></div>
+        <button class="btn card-cta" id="cardCta" style="display:none" onclick="GDTI.showCard()">✦ 查看典藏卡 · 分享到群</button>
+      </div>
+
+      <div class="matrix-wrap">
+        <div class="mx-top mono">▲ 发售之神 · 高产出</div>
+        <div class="matrix" id="rMatrix"></div>
+        <div class="mx-bot mono">▼ 永远没开工 · 低产出</div>
+        <div class="mx-x mono"><span>← 纯生意</span><span class="mid">内核</span><span>纯灵魂 →</span></div>
+      </div>
+
+      <div class="r-bars" id="rBars"></div>
+      <div class="r-desc" id="rDesc"></div>
+
+      <div class="r-rel">
+        <div class="rel love">
+          <div class="rk mono">▲ 灵魂搭档</div>
+          <div class="rn pixel" id="rMateCode"></div>
+          <div class="rr" id="rMateWhy"></div>
+        </div>
+        <div class="rel hate">
+          <div class="rk mono">▼ 天敌</div>
+          <div class="rn pixel" id="rClashCode"></div>
+          <div class="rr" id="rClashWhy"></div>
+        </div>
+      </div>
+
+      <div class="join">
+        <div class="join-l">
+          <div class="join-k mono">▣ 加入独立开发者交流群</div>
+          <div class="join-sub mono">来群里对线人格、围观隐藏神人、找搭档/抱团开发 →</div>
+        </div>
+        <button class="join-num mono" onclick="GDTI.group()">
+          <span class="qn">1043785282</span>
+          <span class="qc">点击复制群号</span>
+        </button>
+      </div>
+
+      <div class="r-actions">
+        <button class="btn" onclick="GDTI.copy()">复制结果分享</button>
+        <button class="btn ghost" onclick="GDTI.restart()">↻ 再测一次</button>
+      </div>
+      <div class="foot mono">GDTI · Game Dev Type Indicator · 纯娱乐,如有雷同纯属你真的是</div>
+    </section>
+
+  </div>
+
+  <div class="statusbar">
+    <span class="grp" onclick="GDTI.group()">▸ QQ群 1043785282</span>
+    <span class="coin">◉ INSERT COIN</span>
+  </div>
+</div>
+
+<div id="toast">已复制到剪贴板 ✓</div>
+
+<div class="card-modal" id="cardModal" onclick="if(event.target===this)GDTI.closeCard()">
+  <div class="card-stage">
+    <div class="card-frame" id="cardFrame">
+      <img id="cardImg" alt="典藏卡">
+      <div class="card-sheen"></div>
+    </div>
+    <div class="card-hint mono">手机长按卡片即可保存图片 · 发到群里炫耀</div>
+    <div class="card-btns">
+      <button class="btn" onclick="GDTI.saveCard()">⤓ 保存图片</button>
+      <button class="btn ghost" onclick="GDTI.group()">复制群号</button>
+      <button class="btn ghost" onclick="GDTI.closeCard()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 维度 0 = 内核 X (灵魂 +1 / 生意 -1),18 题 ===== */
+const QX = [
+  {q:"一个新点子让你激动到睡不着,通常是因为——",
+    a:{t:"我脑子里有个非做不可的世界,必须把它做出来",s:1},
+    b:{t:"我嗅到了一个没人填的市场空位,这玩意儿能卖",s:-1},
+    c:{t:"两个都有点……主要是我刚好失业,得找点事干",s:0}},
+  {q:"Steam 后台只能盯一个数字看,你选哪个?",
+    a:{t:"好评率,还有那些写满感情的长评",s:1},
+    b:{t:"销量,以及到账金额",s:-1},
+    c:{t:"两个都盯,然后焦虑到一整天没写代码",s:0}},
+  {q:"有人出钱让你改掉最珍视的核心玩法,好让游戏更好卖。",
+    a:{t:"不可能,这是我的孩子,免谈",s:1},
+    b:{t:"改,恰饭要紧,情怀以后再说",s:-1},
+    c:{t:"嘴上说『绝不』,身体很诚实地改了一半",s:0}},
+  {q:"立项后,你做的第一件事是——",
+    a:{t:"写下我想表达的情感和主题",s:1},
+    b:{t:"翻这个品类近半年的销量曲线",s:-1},
+    c:{t:"先建个仓库,起个很酷的项目名",s:0}},
+  {q:"在你心里,什么才算一款好游戏?",
+    a:{t:"能让人记一辈子的体验",s:1},
+    b:{t:"能让人心甘情愿掏钱的产品",s:-1},
+    c:{t:"能让我做完不烂尾的,就是好游戏",s:0}},
+  {q:"看到一款很空洞但很赚钱的爆款——",
+    a:{t:"这也配叫游戏?艺术已死",s:1},
+    b:{t:"认真研究人家凭什么赚到这钱",s:-1},
+    c:{t:"一边骂一边偷偷打开它的页面研究",s:0}},
+  {q:"给游戏定价时,你的依据是——",
+    a:{t:"凭感觉,别太贵,对不起玩家",s:1},
+    b:{t:"竞品定价 + 心理锚点分析",s:-1},
+    c:{t:"抄个差不多的同类价格",s:0}},
+  {q:"美术风格怎么定?",
+    a:{t:"服务于我想要的情绪和表达",s:1},
+    b:{t:"哪种风格转化率高就用哪种",s:-1},
+    c:{t:"哪个素材包便宜好用就用哪个",s:0}},
+  {q:"如果游戏只能达成一个目标,你选——",
+    a:{t:"让玩家被打动到落泪",s:1},
+    b:{t:"冲上畅销榜",s:-1},
+    c:{t:"别再烂尾,顺利发售就行",s:0}},
+  {q:"你最想收到的玩家评价是——",
+    a:{t:"『这游戏改变了我』",s:1},
+    b:{t:"『已安利全部朋友,闭眼买』",s:-1},
+    c:{t:"『没想到他居然真做完了』",s:0}},
+  {q:"做到一半发现:不赚钱,但很有艺术价值。",
+    a:{t:"继续做,钱不是重点",s:1},
+    b:{t:"砍掉,及时止损",s:-1},
+    c:{t:"纠结到失眠,啥也没决定",s:0}},
+  {q:"你选择游戏题材的方式是——",
+    a:{t:"我私人的执念和热爱",s:1},
+    b:{t:"受众广、好传播、有市场的题材",s:-1},
+    c:{t:"哪个我技术上 hold 得住就选哪个",s:0}},
+  {q:"看到一条差评,你最在意的是——",
+    a:{t:"他没 get 到我真正想表达的东西",s:1},
+    b:{t:"它会拉低转化率和评分",s:-1},
+    c:{t:"不敢看,直接关掉页面",s:0}},
+  {q:"你理想中的『成功』是——",
+    a:{t:"成为某些人心里的神作",s:1},
+    b:{t:"财富自由,开自己的工作室",s:-1},
+    c:{t:"至少回本,别赔进去",s:0}},
+  {q:"去参加游戏展,你最想要的是——",
+    a:{t:"有人玩到当场震撼/落泪",s:1},
+    b:{t:"谈下发行、渠道、合作",s:-1},
+    c:{t:"展位有免费午饭和水",s:0}},
+  {q:"关于 DLC,你的态度是——",
+    a:{t:"只在故事真的需要时才做",s:1},
+    b:{t:"上线前就规划好的收入来源",s:-1},
+    c:{t:"DLC?我本体都还没做完",s:0}},
+  {q:"做游戏时,你更在意——",
+    a:{t:"它够不够独特、够不够有我的味道",s:1},
+    b:{t:"它够不够好卖、够不够多人玩",s:-1},
+    c:{t:"它今晚能不能跑起来不崩",s:0}},
+  {q:"用一句话形容你做游戏这件事——",
+    a:{t:"我在用代码写诗",s:1},
+    b:{t:"我在经营一门生意",s:-1},
+    c:{t:"我在和拖延症贴身肉搏",s:0}},
+];
+
+/* ===== 维度 1 = 产出 Y (发售 +1 / 永不发售 -1),18 题 ===== */
+const QY = [
+  {q:"你硬盘里『快做完了』的项目有几个?",
+    a:{t:"我会逼自己 ship,做完的都发售了",s:1},
+    b:{t:"一大堆,但没有一个真的发售",s:-1},
+    c:{t:"发售过一个,然后再没复现过那个奇迹",s:0}},
+  {q:"『Done is better than perfect』,你的反应?",
+    a:{t:"对,先发出去再说",s:1},
+    b:{t:"不行,这里还能再打磨一下……再一下……",s:-1},
+    c:{t:"我完全同意……但只对别人的项目",s:0}},
+  {q:"Deadline 对你意味着什么?",
+    a:{t:"神圣不可侵犯,到点我就发",s:1},
+    b:{t:"Deadline?那是什么,能玩吗",s:-1},
+    c:{t:"我会定,然后温柔地把它一推再推",s:0}},
+  {q:"开发到一半,你想到一个超酷的新机制。",
+    a:{t:"记下来,发售之后再考虑",s:1},
+    b:{t:"立刻加!这游戏迟早吊打 3A,宇宙第一",s:-1},
+    c:{t:"先记进 TODO,然后再没打开过",s:0}},
+  {q:"你的功能清单(feature list)趋势是——",
+    a:{t:"越砍越短,直到能发售",s:1},
+    b:{t:"越写越长,自己都快 hold 不住",s:-1},
+    c:{t:"有清单,但从来不照着做",s:0}},
+  {q:"你典型的一天开发长这样——",
+    a:{t:"定目标 → 完成 → 收工",s:1},
+    b:{t:"重构昨天的代码 → 不满意 → 重写",s:-1},
+    c:{t:"打开引擎 → 刷社区 → 关掉引擎",s:0}},
+  {q:"项目做到 70% 完成度时,你通常会——",
+    a:{t:"冲刺收尾,准备上架",s:1},
+    b:{t:"推倒重做,这一版配不上我",s:-1},
+    c:{t:"开个新项目,这个先放放",s:0}},
+  {q:"关于『再打磨一下』——",
+    a:{t:"适可而止,发了再迭代",s:1},
+    b:{t:"永远还能更好,不着急",s:-1},
+    c:{t:"打磨?我都还没做出来呢",s:0}},
+  {q:"你已经公开发布过的游戏数量是——",
+    a:{t:"好几个,稳定产出",s:1},
+    b:{t:"零——但你们多半没玩过我十几年前那张自制地图",s:-1},
+    c:{t:"一个,然后停更跑路了",s:0}},
+  {q:"面对一个 bug,你的第一反应——",
+    a:{t:"能发售就行,先标记后修",s:1},
+    b:{t:"必须全清,带 bug 不配发售",s:-1},
+    c:{t:"bug?那是隐藏玩法",s:0}},
+  {q:"当项目范围开始失控,你会——",
+    a:{t:"果断砍需求,保住发售",s:1},
+    b:{t:"加钱加时间继续做大",s:-1},
+    c:{t:"假装没看见,继续往里塞",s:0}},
+  {q:"你和『发售』这件事的关系是——",
+    a:{t:"老朋友,经常见面",s:1},
+    b:{t:"听说过,但没见过",s:-1},
+    c:{t:"见过一次,留下了心理阴影",s:0}},
+  {q:"被人催进度时,你会说——",
+    a:{t:"给得出明确的发售日期",s:1},
+    b:{t:"『引擎都写好了,就差美术、策划、和开始』",s:-1},
+    c:{t:"『在做了在做了』(其实没在做)",s:0}},
+  {q:"做游戏最爽的瞬间是——",
+    a:{t:"点下『发布』按钮那一刻",s:1},
+    b:{t:"想到一个新点子那一刻",s:-1},
+    c:{t:"那么远的瞬间我还没体验过",s:0}},
+  {q:"你当前项目的版本号大概是——",
+    a:{t:"已经 1.0,甚至 2.0",s:1},
+    b:{t:"永远停在 0.3 pre-alpha",s:-1},
+    c:{t:"没有版本号,因为没构建过",s:0}},
+  {q:"一场 game jam 结束之后,你——",
+    a:{t:"把好点子打磨成完整游戏并发售",s:1},
+    b:{t:"又攒了个『载入史册』级的神作原型,当然没做完",s:-1},
+    c:{t:"jam 本身都没做完",s:0}},
+  {q:"对『先发个 demo 试水』的态度——",
+    a:{t:"好主意,逼自己产出",s:1},
+    b:{t:"demo 也得完美,不能丢人",s:-1},
+    c:{t:"demo = 我目前唯一的成品",s:0}},
+  {q:"你最可能的墓志铭是——",
+    a:{t:"『他做完了,并且发售了』",s:1},
+    b:{t:"『他的 dream game 即将上线』",s:-1},
+    c:{t:"『他本来打算开始的』",s:0}},
+];
+
+/* 交错排列,X/Y 各 18 题 = 36 题 */
+const QUESTIONS = [];
+for(let i=0;i<18;i++){
+  QUESTIONS.push({...QX[i], ax:0, axis:"内核 · WHY · 你为什么做游戏"});
+  QUESTIONS.push({...QY[i], ax:1, axis:"产出 · OUTPUT · 你做不做得完"});
+}
+
+/* ===== 25 人格:键 = "X-Y" ,X 0=生意…4=灵魂 ,Y 0=没开工…4=发售之神 ===== */
+const PERSONAS = {
+  // X0 纯生意
+  "0-0":{code:"孽神", cls:"嘴炮大酋长", legend:true, tag:"嘴炮吊打3A,demo 永远在下周",
+    desc:"魔兽3 地图编辑器里长大的『神童』,一开口就是吊打 3A、宇宙第一,落地却永远是『下周放出 demo』。那种介乎失智与狂人之间的发言,让全群又想拉黑又舍不得。喧嚣背后,大概还住着那个小时候跟爸爸一起打仙剑、打魔兽的小孩——只是没人敢戳破。",
+    mate:"TODO", mw:"都只动嘴,不动引擎", clash:"BOSS", cw:"他闷声发财,你闷声吹牛"},
+  "0-1":{code:"君神", cls:"梭哈殉道者", legend:true, tag:"贷款 450 万做游戏,后销声匿迹",
+    desc:"你不是在做游戏,是在 all-in 一场豪赌。贷款 450 万梭哈进 dream game,身边人拦都拦不住。然后……项目连同你一起人间蒸发。每个新人都听过你的传说,引以为戒,然后重蹈覆辙。",
+    mate:"默神", mw:"梭哈殉道者联盟", clash:"SAFE", cw:"他一分不亏,你赔上身家"},
+  "0-2":{code:"FLIP", cls:"换皮搬运王", tag:"粗制滥造,但真的上架了",
+    desc:"换皮、拼素材、蹭关键词,品质感人,但你是真出货。差评如潮、退款如雨,而你已经在做下一个换皮了。可怕的执行力,可耻的良心。",
+    mate:"COPY", mw:"缝合出货兄弟", clash:"ICON", cw:"纯艺术之神看你一眼想报警"},
+  "0-3":{code:"LOOT", cls:"掉落之王", tag:"把游戏当生意,发售即印钞",
+    desc:"市场调研、营销漏斗、转化率张口就来。你做的不是艺术是产品,而且卖得很好。DLC 路线图就是你的提款机。",
+    mate:"BOSS", mw:"生意人双子星", clash:"COZY", cw:"他嫌你铜臭,你嫌他不赚钱"},
+  "0-4":{code:"FARM", cls:"量产农场主", tag:"不追神作,只追出货量",
+    desc:"闷头量产小体量、能赚钱的游戏,一年发十个。不赌命、不上头,务实到可怕。神作?那玩意儿不稳,不做。",
+    mate:"SAFE", mw:"稳健量产二人组", clash:"GRND", cw:"他磨一个像素的功夫,你出仨游戏"},
+  // X1 偏商业
+  "1-0":{code:"TODO", cls:"清单仙人", tag:"点子三百条,完成零条",
+    desc:"你的 Notion 躺着300个游戏点子和变现方案,排版精美、配色讲究,就是没写过一行代码。整理点子本身就让你很满足。",
+    mate:"孽神", mw:"都只动嘴,不动引擎", clash:"FARM", cw:"他在出货,你在排版"},
+  "1-1":{code:"EA", cls:"抢先体验之神", tag:"1.0 永远在地平线那头",
+    desc:"你深谙『抢先体验』的艺术,路线图画得比 NASA 还细,玩家边骂边充值。游戏能不能完工不重要,氛围到位就行。(别真跑路啊。)",
+    mate:"君神", mw:"高风险玩家俱乐部", clash:"SOLO", cw:"老实匠人看不惯你画饼"},
+  "1-2":{code:"COPY", cls:"克隆缝合怪", tag:"什么火抄什么,手速还挺快",
+    desc:"哪个品类爆了,两周内你就有个像模像样的仿品上架。原创?风险太高。你只做被市场验证过的安全牌,而且出得很快。",
+    mate:"FLIP", mw:"缝合出货兄弟", clash:"CULT", cw:"原创邪典最鄙视抄袭"},
+  "1-3":{code:"SAFE", cls:"稳健玩家", tag:"不会爆,但绝不亏",
+    desc:"专做有市场、体量小、会营销的游戏。不赌命,只赚该赚的钱。无聊?但你账户最好看,隔壁全在偷偷羡慕你的纪律。",
+    mate:"FARM", mw:"理性大脑联盟", clash:"DOOM", cw:"他的浪漫,你的噩梦"},
+  "1-4":{code:"BOSS", cls:"闷声老板", tag:"不吭声,做大项目,默默数钱",
+    desc:"不画饼、不直播、不社交,默默立个瞄准市场的大项目,默默做完、默默发售、默默回本。可怕的执行力,可怕的沉默。",
+    mate:"LOOT", mw:"实干生意人", clash:"DREAM", cw:"他在做白日梦,你已经发售第三作"},
+  // X2 平衡
+  "2-0":{code:"WISH", cls:"愿望单战士", tag:"只会给别人的游戏加愿望单",
+    desc:"你对游戏充满热爱,Steam 愿望单两千个,自己的项目?在脑子里,挺好的,就是一直没动工。热爱玩家,也热爱『打算做』。",
+    mate:"DREAM", mw:"脑内创作同好", clash:"SHIP", cw:"他把你想做的事真做出来了"},
+  "2-1":{code:"DOOM", cls:"末日工程师", tag:"dream game 比你的人生还长",
+    desc:"你的旷世杰作很伟大——在你脑子里。每年都说明年发售,硬盘是它唯一的墓地。野心拉满,进度条焊死在 30%。",
+    mate:"GRND", mw:"永远做不完联盟", clash:"SAFE", cw:"求他分你一点务实"},
+  "2-2":{code:"POOR", cls:"清贫战士", tag:"道理都懂,就是发得太慢",
+    desc:"你既要有趣又要能卖,结果两头都差一口气。偶尔发一个,叫好不叫座,用爱发电、钱包负电。『下个月一定爆发』,说了十四个月了。",
+    mate:"WISH", mw:"用爱发电没回报", clash:"GOTY", cw:"那个又叫好又叫座的混蛋"},
+  "2-3":{code:"SHIP", cls:"发售机器", tag:"『先发了再迭代』的信徒",
+    desc:"你找到了野心与现实的平衡点:做完、发售、复盘、再来。不神化也不摆烂,稳定产出能玩的好游戏。稀有的健康开发者。",
+    mate:"SOLO", mw:"健康开发者之交", clash:"孽神", cw:"他还在群里画饼,你已稳定发售"},
+  "2-4":{code:"GOTY", cls:"年度收割机", tag:"又叫好又叫座的那个混蛋",
+    desc:"你居然同时拥有灵魂、销量和执行力。每发一作都进年度榜,玩家爱、媒体夸、钱包鼓。其他 24 种人格都恨你,而你浑然不觉。",
+    mate:"GOAT", mw:"神作高产联盟", clash:"孽神", cw:"勤奋成果 vs 群里嘴炮"},
+  // X3 偏理想
+  "3-0":{code:"DREAM", cls:"白日梦艺术家", tag:"脑内已是神作,工程零进度",
+    desc:"你能给 dream game 讲三小时世界观、画满一本设定集、配好原声带歌单……唯独没打开引擎。它太完美了,完美到你不敢开始。",
+    mate:"WISH", mw:"白日梦双子座", clash:"FARM", cw:"他不浪漫,但他真的发售"},
+  "3-1":{code:"GRND", cls:"打磨地狱使者", tag:"一个像素,调一礼拜",
+    desc:"游戏只有一关,但那一关你重做了 40 遍。完美主义把你焊在第一屏,东西是真好看,就是永远差『最后 10%』。",
+    mate:"DOOM", mw:"差最后10%俱乐部", clash:"FARM", cw:"他量产,你磨一关磨到天荒地老"},
+  "3-2":{code:"CULT", cls:"邪典缔造者", tag:"小众,但有人为你建神庙",
+    desc:"你偶尔放出一个怪异又迷人的作品,销量不高但信徒狂热,有人给你的 NPC 写同人、建 wiki。你做的不是游戏,是亚文化。",
+    mate:"COZY", mw:"亚文化温柔派", clash:"COPY", cw:"你最恨抄袭和换皮"},
+  "3-3":{code:"SOLO", cls:"独行匠人", tag:"安静地,把小东西做到好",
+    desc:"一个人做完并真的发售,不喧哗、不画饼,做出让人会心一笑的精致小品。能做完又愿意放手的你,是稀有物种。",
+    mate:"SHIP", mw:"匠人之交", clash:"EA", cw:"你受不了边画饼边圈钱"},
+  "3-4":{code:"GOAT", cls:"神作锻造者", tag:"闭关出关,直接封神",
+    desc:"有灵魂、有执行力、还高产。不靠营销靠口碑,每作都被供起来。别人问你打哪冒出来的,答案永远是:地下室。",
+    mate:"ICON", mw:"殿堂级邻居", clash:"孽神", cw:"地下室封神 vs 群里嘴炮"},
+  // X4 纯艺术家
+  "4-0":{code:"GHOST", cls:"幽灵开发者", tag:"你的神作只存在于想象中",
+    desc:"纯粹到不敢动工,怕现实弄脏脑子里那个完美的形状。你是传说,只是没人见过你的游戏——包括你自己。",
+    mate:"DREAM", mw:"脑内神作同好", clash:"BOSS", cw:"他不懂浪漫,但他在数钱"},
+  "4-1":{code:"默神", cls:"消失的天才", legend:true, tag:"高中辍学做游戏,后销声匿迹",
+    desc:"为了心中那款游戏,你连高中都不读了,全部押上。才华是真的,热爱是真的——可某天,你连同你的游戏一起从所有人的视野里消失。没人知道你去了哪,只剩一个名字在群里流传成神话。",
+    mate:"君神", mw:"梭哈殉道者联盟", clash:"SHIP", cw:"他稳稳发售,你燃烧殆尽"},
+  "4-2":{code:"COZY", cls:"温暖供应商", tag:"你的游戏像一杯热可可",
+    desc:"产量不高,但每个都有灵魂、社区超暖。玩家会哭着写五千字好评,把它当避难所。你卖的不是玩法,是情绪价值。",
+    mate:"CULT", mw:"情绪价值供应商", clash:"LOOT", cw:"你嫌他把游戏做成了生意"},
+  "4-3":{code:"ZEN", cls:"禅意匠人", tag:"小而美,克制而持续地产出",
+    desc:"你奇迹般地调和了纯粹的艺术追求和稳定发售。作品安静、精确、不迎合,却总能按时完成。开发界的扫地僧。",
+    mate:"SOLO", mw:"克制产出二人组", clash:"FLIP", cw:"换皮搬运令你心痛"},
+  "4-4":{code:"ICON", cls:"殿堂级", tag:"理论上不该存在的人",
+    desc:"纯粹的艺术追求 + 神级产出。你只做心中真正想做的,却部部封神、产量惊人。教科书会写你的名字,而你还在闷头做下一部。",
+    mate:"GOAT", mw:"神坛上的邻居", clash:"孽神", cw:"存在,与虚空嘴炮"},
+};
+
+/* ===== 典藏卡:三位神人的卡面主题 ===== */
+const CARDS = {
+  "孽神":{no:"01", accent:"#8cff66", accent2:"#b06bff", subtitle:"DELUSIONAL WARCHIEF", emblem:"crown",
+    flavor:"魔兽3 地图编辑器养大的『神童』\n扬言单人做出吊打3A的宇宙神作\n至今最大成就:让全群信他在做"},
+  "君神":{no:"07", accent:"#ff5d6c", accent2:"#ffc24b", subtitle:"THE ALL-IN MARTYR", emblem:"coin",
+    flavor:"贷款 450 万,梭哈一场。然后,再无音讯。"},
+  "默神":{no:"13", accent:"#6bd0ff", accent2:"#9d7bff", subtitle:"THE VANISHED GENIUS", emblem:"ghost",
+    flavor:"他辍学,他燃烧,他消失——只留下一个名字。"},
+};
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function wrapTspan(text, max, x, cy, lh){
+  const lines=[];
+  String(text).split("\n").forEach(seg=>{
+    const arr=[...seg]; let cur="";
+    for(const ch of arr){ cur+=ch; if(cur.length>=max){ lines.push(cur); cur=""; } }
+    if(cur || arr.length===0) lines.push(cur);
+  });
+  const startY = cy - (lines.length-1)*lh/2;
+  return lines.map((ln,i)=>`<tspan x="${x}" y="${startY+i*lh}">${esc(ln)}</tspan>`).join("");
+}
+function emblem(type, a){
+  if(type==="crown") return `<g transform="translate(260,252) rotate(-9)" filter="url(#glow)">
+      <path d="M-60,28 L-60,-12 L-32,12 L0,-32 L32,12 L60,-12 L60,28 Z" fill="none" stroke="${a}" stroke-width="10" stroke-linejoin="round"/>
+      <rect x="-60" y="28" width="120" height="12" rx="3" fill="none" stroke="${a}" stroke-width="9"/>
+      <circle cx="-32" cy="6" r="5" fill="${a}"/><circle cx="0" cy="-14" r="6.5" fill="${a}"/><circle cx="32" cy="6" r="5" fill="${a}"/>
+      <path d="M8,40 L-4,8 L10,-12" fill="none" stroke="#0c0a1a" stroke-width="6"/></g>`;
+  if(type==="snake") return `<g transform="translate(260,250)" fill="none" stroke="${a}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+      <path d="M-40,52 C-40,8 40,18 40,-14 C40,-44 -16,-44 -16,-70"/></g>
+      <polygon points="-26,-70 -6,-70 -16,-88" fill="${a}" filter="url(#glow)"/>
+      <circle cx="248" cy="244" r="5" fill="#0c0a1a"/>`;
+  if(type==="coin") return `<g transform="translate(260,250)" filter="url(#glow)">
+      <circle r="62" fill="none" stroke="${a}" stroke-width="10"/>
+      <text x="0" y="26" fill="${a}" font-size="78" font-weight="900" text-anchor="middle">¥</text>
+      <path d="M6,-62 L-10,-22 L8,4 L-8,40 L6,62" fill="none" stroke="#0c0a1a" stroke-width="7"/></g>`;
+  if(type==="ghost") return `<g transform="translate(260,256)" fill="${a}" filter="url(#glow)">
+      <path d="M-34,64 C-34,6 -20,-34 0,-34 C20,-34 34,6 34,64 Z"/>
+      <circle cx="0" cy="-50" r="24"/>
+      <circle cx="46" cy="-6" r="6" opacity=".7"/><circle cx="60" cy="-30" r="5" opacity=".5"/>
+      <circle cx="40" cy="-40" r="4" opacity=".55"/><circle cx="66" cy="6" r="4" opacity=".4"/>
+      <circle cx="54" cy="22" r="3" opacity=".3"/></g>`;
+  return `<text x="260" y="270" fill="${a}" font-size="84" text-anchor="middle" filter="url(#glow)">★</text>`;
+}
+function buildCardSVG(p, c){
+  const m = CARDS[p.code] || {no:"00",accent:"#ffc24b",accent2:"#36e0c4",subtitle:"LEGENDARY",emblem:"star",flavor:p.tag};
+  const a=m.accent, a2=m.accent2;
+  const mint = String(Math.floor(Math.random()*9000)+1000);
+  const xP=Math.round(c.xpct*100), yP=Math.round(c.ypct*100);
+  return `<svg viewBox="0 0 520 760" width="520" height="760" xmlns="http://www.w3.org/2000/svg" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <linearGradient id="foil" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${a}"/><stop offset=".5" stop-color="${a2}"/><stop offset="1" stop-color="${a}"/></linearGradient>
+    <linearGradient id="holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${a2}" stop-opacity="0"/><stop offset=".42" stop-color="${a}" stop-opacity=".20"/>
+      <stop offset=".55" stop-color="#ffffff" stop-opacity=".10"/><stop offset="1" stop-color="${a2}" stop-opacity="0"/></linearGradient>
+    <radialGradient id="med" cx=".5" cy=".38" r=".75">
+      <stop offset="0" stop-color="${a}" stop-opacity=".5"/><stop offset="1" stop-color="#0a0817"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect x="5" y="5" width="510" height="750" rx="28" fill="url(#foil)"/>
+  <rect x="15" y="15" width="490" height="730" rx="22" fill="#0c0a1a"/>
+  <rect x="15" y="15" width="490" height="730" rx="22" fill="url(#holo)"/>
+  <rect x="26" y="26" width="468" height="708" rx="16" fill="none" stroke="${a}" stroke-opacity=".5" stroke-width="1.5"/>
+  <text x="42" y="64" fill="${a}" font-size="18" font-weight="700" letter-spacing="2">GDTI 传说典藏</text>
+  <text x="478" y="64" fill="#ffd86b" font-size="17" text-anchor="end" letter-spacing="3">★★★★★</text>
+  <rect x="42" y="78" width="436" height="2" fill="${a}" opacity=".4"/>
+  <rect x="42" y="96" width="148" height="30" rx="15" fill="${a}"/>
+  <text x="116" y="116" fill="#0c0a1a" font-size="14" font-weight="800" text-anchor="middle" letter-spacing="2">LEGENDARY</text>
+  <text x="478" y="117" fill="#8b82b8" font-size="14" text-anchor="end" letter-spacing="1">NO.${m.no} / 25</text>
+  <circle cx="260" cy="250" r="98" fill="url(#med)" stroke="${a}" stroke-width="3"/>
+  ${emblem(m.emblem, a)}
+  <text x="260" y="418" fill="#ffffff" font-size="66" font-weight="900" text-anchor="middle" letter-spacing="8">${esc(p.code)}</text>
+  <text x="260" y="446" fill="${a}" font-size="14" text-anchor="middle" letter-spacing="3">${esc(m.subtitle)}</text>
+  <text x="260" y="478" fill="#cfc8ef" font-size="19" font-weight="700" text-anchor="middle">${esc(p.cls)}</text>
+  <rect x="42" y="500" width="436" height="92" rx="12" fill="#15102b" stroke="${a}" stroke-opacity=".3"/>
+  <text fill="#cfc8ef" font-size="16" font-style="italic" text-anchor="middle" font-family="'PingFang SC','Microsoft YaHei',serif">
+    ${wrapTspan(m.flavor, 17, 260, 546, 26)}</text>
+  <text x="42" y="630" fill="#8b82b8" font-size="14">内核 ${xP}% 灵魂</text>
+  <text x="478" y="630" fill="#8b82b8" font-size="14" text-anchor="end">产出 ${yP}% 发售</text>
+  <rect x="42" y="642" width="436" height="6" rx="3" fill="#0a0817"/>
+  <rect x="42" y="642" width="${Math.round(4.36*xP)}" height="6" rx="3" fill="${a}"/>
+  <rect x="42" y="660" width="436" height="6" rx="3" fill="#0a0817"/>
+  <rect x="42" y="660" width="${Math.round(4.36*yP)}" height="6" rx="3" fill="${a2}"/>
+  <rect x="42" y="690" width="436" height="2" fill="${a}" opacity=".3"/>
+  <text x="42" y="720" fill="${a}" font-size="16" font-weight="700">QQ群 1043785282</text>
+  <text x="478" y="720" fill="#5f578a" font-size="13" text-anchor="end" letter-spacing="1">铸号 #${mint}</text>
+</svg>`;
+}
+
+const AXES = [
+  {l:"生意", r:"灵魂"},        // X 条:左=生意,右=灵魂
+  {l:"永不发售", r:"发售之神"}, // Y 条:左=没开工,右=发售
+];
+
+const CLOG = [
+  "> linking soul.dll ............ ok",
+  "> scanning 36 answers ......... ok",
+  "> resolving dependencies ...... 47 unfinished",
+  "> computing coordinates ...... ████",
+  "> locating you on 5x5 grid ... done",
+];
+
+const GDTI = (() => {
+  let idx = 0;
+  const answers = [];
+  let current = null;
+  let lastCoords = null, cardSVG = "", cardDataURL = "";
+  const $ = id => document.getElementById(id);
+
+  // 传说级人格:解锁前在矩阵里显示 "???"
+  const LEGEND_CODES = new Set(
+    Object.values(PERSONAS).filter(p=>p.legend).map(p=>p.code)
+  );
+  let unlocked = new Set();
+  try { unlocked = new Set(JSON.parse(localStorage.getItem("gdti_unlocked")||"[]")); } catch(e){}
+  function saveUnlocked(){ try{ localStorage.setItem("gdti_unlocked", JSON.stringify([...unlocked])); }catch(e){} }
+  // 已解锁 / 非传说级 -> 显示真名;否则显示 ???
+  function displayCode(code){ return (LEGEND_CODES.has(code) && !unlocked.has(code)) ? "???" : code; }
+
+  const show = id => {
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    $(id).classList.add("active");
+  };
+
+  function start(){ idx=0; answers.length=0; render(); show("quiz"); }
+
+  function render(){
+    const q = QUESTIONS[idx];
+    $("qCount").textContent = String(idx+1).padStart(2,"0") + "/" + QUESTIONS.length;
+    $("qFill").style.width = (idx/QUESTIONS.length*100) + "%";
+    $("qAxis").textContent = q.axis;
+    $("qText").textContent = q.q;
+    const opts = $("qOpts");
+    opts.innerHTML = "";
+    [["A",q.a],["B",q.b],["C",q.c]].forEach(([k,o])=>{
+      const b=document.createElement("button");
+      b.className="opt"; b.dataset.k=k; b.textContent=o.t;
+      b.onclick=()=>pick(q.ax, o.s);
+      opts.appendChild(b);
+    });
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function pick(ax, s){
+    answers.push({ax, s});
+    idx++;
+    if(idx < QUESTIONS.length){ render(); } else { compile(); }
+  }
+
+  function compile(){
+    show("compiling");
+    $("cFill").style.width="0%"; $("clog").textContent="";
+    requestAnimationFrame(()=>{ $("cFill").style.transition="width 1.7s linear"; $("cFill").style.width="100%"; });
+    let i=0; const log=$("clog");
+    const t=setInterval(()=>{
+      log.textContent = CLOG[i] || "";
+      i++;
+      if(i>CLOG.length){ clearInterval(t); finish(); }
+    },360);
+  }
+
+  function bucket(s){            // s in -18..18  ->  0..4
+    const t=(s+18)/36;
+    return Math.max(0, Math.min(4, Math.floor(t*5)));
+  }
+
+  function tally(){
+    let sx=0, sy=0;
+    answers.forEach(a => a.ax===0 ? (sx+=a.s) : (sy+=a.s));
+    return {
+      xi:bucket(sx), yi:bucket(sy),
+      xpct:(sx+18)/36, ypct:(sy+18)/36
+    };
+  }
+
+  function finish(){
+    const {xi,yi,xpct,ypct} = tally();
+    lastCoords = {xi,yi,xpct,ypct};
+    const r = PERSONAS[xi+"-"+yi];
+    current = r;
+
+    // 抽中传说级 -> 解锁(并持久化)
+    let justUnlocked = false;
+    if(r.legend && !unlocked.has(r.code)){ unlocked.add(r.code); saveUnlocked(); justUnlocked = true; }
+
+    $("rCode").textContent = r.code;
+    $("rCode").classList.toggle("cjk", /[\u4e00-\u9fff]/.test(r.code));
+    $("rBadge").style.display = r.legend ? "inline-block" : "none";
+    $("rClass").textContent = r.cls;
+    $("rTag").textContent = "「" + r.tag + "」";
+    $("rCoord").textContent = "坐标 X"+xi+" · Y"+yi+"  /  内核 "+Math.round(xpct*100)+"% 灵魂 · 产出 "+Math.round(ypct*100)+"% 发售";
+
+    // 5x5 matrix, 行从 y=4(顶)到 y=0(底)
+    const mx = $("rMatrix"); mx.innerHTML="";
+    for(let y=4;y>=0;y--){
+      for(let x=0;x<=4;x++){
+        const p = PERSONAS[x+"-"+y];
+        const locked = p.legend && !unlocked.has(p.code);
+        const cell=document.createElement("div");
+        cell.className = "cell" + (p.legend?" legend":"") + (locked?" locked":"") + ((x===xi&&y===yi)?" hi":"");
+        cell.textContent = displayCode(p.code);
+        cell.title = locked ? "??? · 传说级(未解锁)" : (p.code + " · " + p.cls + (p.legend?" · 传说级":""));
+        mx.appendChild(cell);
+      }
+    }
+
+    // 两条精度条
+    const bars=$("rBars"); bars.innerHTML="";
+    [{ax:AXES[0],p:xpct},{ax:AXES[1],p:ypct}].forEach(b=>{
+      const pc=Math.round(b.p*100);
+      const leftDom = pc<50;
+      const row=document.createElement("div");
+      row.innerHTML = `
+        <div class="bar-cap">
+          <span class="${leftDom?'on':''}">${b.ax.l}</span>
+          <span class="${!leftDom?'on':''}">${b.ax.r}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pc}%"></div>
+          <div class="bar-knob" style="left:${pc}%"></div>
+        </div>`;
+      bars.appendChild(row);
+    });
+
+    $("rDesc").textContent = r.desc;
+    $("rMateCode").textContent = displayCode(r.mate); $("rMateWhy").textContent = r.mw;
+    $("rClashCode").textContent = displayCode(r.clash); $("rClashWhy").textContent = r.cw;
+
+    $("cardCta").style.display = r.legend ? "inline-flex" : "none";
+
+    show("result");
+    window.scrollTo({top:0, behavior:"smooth"});
+    if(justUnlocked){
+      setTimeout(()=>toast("🔓 解锁传说级人格:"+r.code), 700);
+      setTimeout(showCard, 1100);
+    }
+  }
+
+  function copy(){
+    if(!current) return;
+    const txt =
+`【GDTI · 独立游戏开发者人格测试】
+我是：${current.legend?"★传说级 ":""}${current.code} — ${current.cls}
+「${current.tag}」
+${current.desc}
+灵魂搭档：${current.mate}　天敌：${current.clash}
+—— 36题测出你在 5×5 开发者矩阵的哪一格?能不能抽到隐藏的「神人」?
+👾 独立开发者交流群 1043785282,来对线`;
+    navigator.clipboard?.writeText(txt).then(()=>toast("已复制到剪贴板 ✓")).catch(()=>{
+      const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
+      ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); toast("已复制到剪贴板 ✓");
+    });
+  }
+  function group(){
+    const QQ="1043785282";
+    navigator.clipboard?.writeText(QQ).then(()=>toast("群号已复制 ✓ 打开QQ搜索加入")).catch(()=>{
+      const ta=document.createElement("textarea"); ta.value=QQ; document.body.appendChild(ta);
+      ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); toast("群号已复制 ✓ 打开QQ搜索加入");
+    });
+  }
+  function toast(msg){
+    const t=$("toast"); t.textContent = msg || "已复制到剪贴板 ✓";
+    t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000);
+  }
+  function showCard(){
+    if(!current || !current.legend || !lastCoords) return;
+    cardSVG = buildCardSVG(current, lastCoords);
+    cardDataURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(cardSVG);
+    const f = $("cardFrame"); const card = CARDS[current.code];
+    if(card) f.style.setProperty("--card-accent", card.accent + "80");
+    $("cardImg").src = cardDataURL;
+    $("cardModal").classList.add("on");
+  }
+  function closeCard(){ $("cardModal").classList.remove("on"); }
+  function saveCard(){
+    if(!cardSVG){ return; }
+    const W=520, H=760, SCALE=2;
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement("canvas");
+      cv.width = W*SCALE; cv.height = H*SCALE;
+      const ctx = cv.getContext("2d");
+      ctx.scale(SCALE, SCALE); ctx.drawImage(img, 0, 0, W, H);
+      try{
+        cv.toBlob(b=>{
+          if(!b){ toast("生成失败,请长按卡片保存"); return; }
+          const url = URL.createObjectURL(b);
+          const a = document.createElement("a");
+          a.href = url; a.download = "GDTI_"+current.code+"_典藏卡.png";
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(()=>URL.revokeObjectURL(url), 4000);
+          toast("已保存图片 ✓ 发到群里炫耀");
+        }, "image/png");
+      }catch(e){ toast("请长按卡片保存图片"); }
+    };
+    img.onerror = () => toast("请长按卡片保存图片");
+    img.src = cardDataURL;
+  }
+
+  function restart(){ idx=0; answers.length=0; current=null; show("intro"); window.scrollTo({top:0,behavior:"smooth"}); }
+
+  return { start, copy, restart, group, showCard, closeCard, saveCard };
+})();
+</script>
+</body>
+</html>

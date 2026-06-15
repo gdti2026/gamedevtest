@@ -128,6 +128,37 @@
   .opt:hover{border-color:var(--cyan);background:#221a40;transform:translateX(3px);}
   .opt:hover::before{background:var(--cyan);color:#0c0a1a;border-color:var(--cyan);}
   .opt:active{transform:translateX(0) scale(.995);}
+  /* MBTI 式同意-不同意量表 */
+  .likert{display:flex;align-items:center;justify-content:center;gap:14px;padding:22px 2px 10px;flex-wrap:nowrap;}
+  .lk-end{font-family:"JetBrains Mono",monospace;font-size:12px;white-space:nowrap;font-weight:700;}
+  .lk-end.agree{color:var(--cyan);} .lk-end.disagree{color:var(--pink);}
+  .lk{border-radius:50%;cursor:pointer;background:transparent;flex:none;padding:0;
+    transition:transform .1s, box-shadow .15s, background .15s;}
+  .lk:active{transform:scale(.88);}
+  .lk.a2{width:48px;height:48px;border:3px solid var(--cyan);}
+  .lk.a1{width:38px;height:38px;border:3px solid #2aa890;}
+  .lk.n {width:28px;height:28px;border:3px solid var(--dim);}
+  .lk.d1{width:38px;height:38px;border:3px solid #8a5bd6;}
+  .lk.d2{width:48px;height:48px;border:3px solid var(--pink);}
+  .lk.a2:hover{background:var(--cyan);box-shadow:var(--glow-cyan);}
+  .lk.a1:hover{background:#2aa890;}
+  .lk.n:hover{background:var(--dim);}
+  .lk.d1:hover{background:#8a5bd6;}
+  .lk.d2:hover{background:var(--pink);box-shadow:var(--glow-pink);}
+  @media(max-width:540px){
+    .likert{gap:9px;padding-top:18px;}
+    .lk-end{font-size:11px;}
+    .lk.a2,.lk.d2{width:42px;height:42px;}
+    .lk.a1,.lk.d1{width:33px;height:33px;}
+    .lk.n{width:25px;height:25px;}
+  }
+  @media(max-width:360px){
+    .likert{gap:6px;}
+    .lk-end{font-size:10px;}
+    .lk.a2,.lk.d2{width:36px;height:36px;}
+    .lk.a1,.lk.d1{width:29px;height:29px;}
+    .lk.n{width:22px;height:22px;}
+  }
 
   /* compiling */
   #compiling{text-align:center;padding:36px 10px 30px;}
@@ -141,8 +172,8 @@
   .r-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
   .r-code{font-family:"Press Start 2P",monospace;font-size:54px;line-height:1.1;margin:14px 0 6px;color:#fff;
     text-shadow:4px 0 var(--pink), -4px 0 var(--cyan);word-break:break-word;}
-  .r-code.cjk{font-family:"Noto Sans SC",sans-serif;font-weight:900;font-size:60px;letter-spacing:4px;}
-  @media(max-width:540px){.r-code{font-size:38px;} .r-code.cjk{font-size:46px;}}
+  .r-code.cjk{font-family:"Noto Sans SC",sans-serif;font-weight:900;font-size:50px;letter-spacing:2px;}
+  @media(max-width:540px){.r-code{font-size:38px;} .r-code.cjk{font-size:36px;}}
   .r-badge{display:inline-block;margin:2px auto 0;font-family:"JetBrains Mono",monospace;font-size:11px;
     letter-spacing:2px;color:#0c0a1a;background:var(--amber);padding:5px 14px;border-radius:999px;
     box-shadow:0 0 22px rgba(255,194,75,.5);font-weight:700;}
@@ -165,6 +196,8 @@
   .cell.legend{color:var(--amber);border-color:rgba(255,194,75,.55);background:#1a1330;}
   .cell.legend::after{content:"★";position:absolute;top:1px;right:3px;font-size:7px;color:var(--amber);opacity:.8;}
   .cell{position:relative;}
+  .cell.hi.ava{color:#0c0a1a;background:var(--amber);border-color:var(--amber);
+    box-shadow:0 0 26px rgba(255,194,75,.6);}
   .cell.legend.hi{color:#0c0a1a;background:var(--amber);border-color:var(--amber);
     box-shadow:0 0 26px rgba(255,194,75,.55);}
   .cell.locked{letter-spacing:1px;}
@@ -236,6 +269,9 @@
     background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.55) 48%,transparent 62%);
     background-size:260% 260%;animation:sheen 3.4s linear infinite;}
   @keyframes sheen{0%{background-position:150% 0;}100%{background-position:-50% 0;}}
+  .card-inline{max-width:330px;margin:26px auto 4px;}
+  .card-inline .card-frame{cursor:pointer;}
+  .card-inline-hint{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-align:center;margin-top:10px;letter-spacing:.3px;}
   .card-hint{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
   .card-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
   .card-btns .btn{flex:1;min-width:120px;font-size:12px;padding:14px 14px;}
@@ -254,7 +290,7 @@
   @media(max-width:360px){
     .body{padding:22px 14px 20px;}
     .title{font-size:25px;}
-    .r-code{font-size:33px;} .r-code.cjk{font-size:40px;}
+    .r-code{font-size:33px;} .r-code.cjk{font-size:30px;}
     .cell{font-size:8px;}
   }
 </style>
@@ -277,14 +313,14 @@
       <div class="eyebrow mono">Game Dev Type Indicator</div>
       <h1 class="title">独立游戏开发者人格<span class="cur"></span></h1>
       <div class="title-en">GAME DEV TYPE INDICATOR</div>
-      <p class="lede">36 道题,2 个维度,<b>25 种</b>开发者人格。<br>
+      <p class="lede">40 道题,2 个维度,<b>25 种</b>开发者人格。<br>
         测完你会落在一张 <b>5×5 开发者矩阵</b>的某个格子里——<br>
         横轴是你的内核(灵魂 ⟷ 生意),纵轴是你的产出(发售之神 ⟷ 永远没开工)。<br>
-        可能是 <b>BOSS</b>,可能是 <b>POOR</b>……矩阵里还藏着 <b>3 个传说级人格</b>,<br>
-        平时只显示 <b>???</b>,只有亲手抽中才会解锁真名。</p>
+        可能是 <b>BOSS</b>,可能是 <b>POOR</b>……除了矩阵里的 25 种,<br>
+        还埋着 <b>4 个隐藏「化身」</b>——它们不在矩阵上,只有把某个维度走到极端才会现身。</p>
 
       <div class="term mono">
-        <div><span class="ok">$</span> ./gdti --start --questions 36</div>
+        <div><span class="ok">$</span> ./gdti --start --questions 40</div>
         <div><span class="dim">&gt;</span> 正在加载灵魂...&nbsp; <span class="ok">[ OK ]</span></div>
         <div><span class="dim">&gt;</span> 正在检测拖延症...&nbsp; <span class="warn">[ FOUND ]</span></div>
         <div><span class="dim">&gt;</span> 正在统计未发售项目...&nbsp; <span class="p">[ 47 ]</span></div>
@@ -292,14 +328,14 @@
 
       <div class="start-row">
         <button class="btn pink" onclick="GDTI.start()">▶ 开始测试</button>
-        <span class="meta-note mono">约 4 分钟 · 共 36 题 · 测完来 QQ群 1043785282 对线</span>
+        <span class="meta-note mono">约 5 分钟 · 共 40 题 · 测完来 QQ群 1043785282 对线</span>
       </div>
     </section>
 
     <!-- QUIZ -->
     <section id="quiz" class="view">
       <div class="q-top">
-        <span class="q-count pixel" id="qCount">01/36</span>
+        <span class="q-count pixel" id="qCount">01/40</span>
         <div class="track"><div class="fill" id="qFill"></div></div>
       </div>
       <div class="q-axis mono" id="qAxis"></div>
@@ -323,14 +359,22 @@
         <div class="r-class" id="rClass"></div>
         <div class="r-tag mono" id="rTag"></div>
         <div class="r-coord mono" id="rCoord"></div>
-        <button class="btn card-cta" id="cardCta" style="display:none" onclick="GDTI.showCard()">✦ 查看典藏卡 · 分享到群</button>
+        <button class="btn card-cta" id="cardCta" style="display:none" onclick="GDTI.showCard()">✦ 放大 / 保存卡片</button>
       </div>
 
-      <div class="matrix-wrap">
+      <div class="matrix-wrap" id="matrixWrap">
         <div class="mx-top mono">▲ 发售之神 · 高产出</div>
         <div class="matrix" id="rMatrix"></div>
         <div class="mx-bot mono">▼ 永远没开工 · 低产出</div>
         <div class="mx-x mono"><span>← 纯生意</span><span class="mid">内核</span><span>纯灵魂 →</span></div>
+      </div>
+
+      <div class="card-inline" id="cardInline" style="display:none">
+        <div class="card-frame" id="cardInlineFrame" onclick="GDTI.showCard()">
+          <img id="cardInlineImg" alt="典藏卡">
+          <div class="card-sheen"></div>
+        </div>
+        <div class="card-inline-hint mono">点击放大 · 长按图片保存 · 发到群里炫耀</div>
       </div>
 
       <div class="r-bars" id="rBars"></div>
@@ -393,161 +437,59 @@
 </div>
 
 <script>
-/* ===== 维度 0 = 内核 X (灵魂 +1 / 生意 -1),18 题 ===== */
+/* ===== MBTI 式量表:每题一句陈述,玩家表态「同意—不同意」 =====
+   ax 0 = 内核(灵魂 / 生意) ; ax 1 = 产出(发售 / 永不发售)
+   d=+1 : 同意 → 正极(灵魂 / 发售) ; d=-1 : 同意 → 负极(生意 / 永不发售)
+   每题计分 = 表态值(同意+2…不同意-2) × d ; 每维度 20 题,区间 -40~+40 ===== */
 const QX = [
-  {q:"一个新点子让你激动到睡不着,通常是因为——",
-    a:{t:"我脑子里有个非做不可的世界,必须把它做出来",s:1},
-    b:{t:"我嗅到了一个没人填的市场空位,这玩意儿能卖",s:-1},
-    c:{t:"两个都有点……主要是我刚好失业,得找点事干",s:0}},
-  {q:"Steam 后台只能盯一个数字看,你选哪个?",
-    a:{t:"好评率,还有那些写满感情的长评",s:1},
-    b:{t:"销量,以及到账金额",s:-1},
-    c:{t:"两个都盯,然后焦虑到一整天没写代码",s:0}},
-  {q:"有人出钱让你改掉最珍视的核心玩法,好让游戏更好卖。",
-    a:{t:"不可能,这是我的孩子,免谈",s:1},
-    b:{t:"改,恰饭要紧,情怀以后再说",s:-1},
-    c:{t:"嘴上说『绝不』,身体很诚实地改了一半",s:0}},
-  {q:"立项后,你做的第一件事是——",
-    a:{t:"写下我想表达的情感和主题",s:1},
-    b:{t:"翻这个品类近半年的销量曲线",s:-1},
-    c:{t:"先建个仓库,起个很酷的项目名",s:0}},
-  {q:"在你心里,什么才算一款好游戏?",
-    a:{t:"能让人记一辈子的体验",s:1},
-    b:{t:"能让人心甘情愿掏钱的产品",s:-1},
-    c:{t:"能让我做完不烂尾的,就是好游戏",s:0}},
-  {q:"看到一款很空洞但很赚钱的爆款——",
-    a:{t:"这也配叫游戏?艺术已死",s:1},
-    b:{t:"认真研究人家凭什么赚到这钱",s:-1},
-    c:{t:"一边骂一边偷偷打开它的页面研究",s:0}},
-  {q:"给游戏定价时,你的依据是——",
-    a:{t:"凭感觉,别太贵,对不起玩家",s:1},
-    b:{t:"竞品定价 + 心理锚点分析",s:-1},
-    c:{t:"抄个差不多的同类价格",s:0}},
-  {q:"美术风格怎么定?",
-    a:{t:"服务于我想要的情绪和表达",s:1},
-    b:{t:"哪种风格转化率高就用哪种",s:-1},
-    c:{t:"哪个素材包便宜好用就用哪个",s:0}},
-  {q:"如果游戏只能达成一个目标,你选——",
-    a:{t:"让玩家被打动到落泪",s:1},
-    b:{t:"冲上畅销榜",s:-1},
-    c:{t:"别再烂尾,顺利发售就行",s:0}},
-  {q:"你最想收到的玩家评价是——",
-    a:{t:"『这游戏改变了我』",s:1},
-    b:{t:"『已安利全部朋友,闭眼买』",s:-1},
-    c:{t:"『没想到他居然真做完了』",s:0}},
-  {q:"做到一半发现:不赚钱,但很有艺术价值。",
-    a:{t:"继续做,钱不是重点",s:1},
-    b:{t:"砍掉,及时止损",s:-1},
-    c:{t:"纠结到失眠,啥也没决定",s:0}},
-  {q:"你选择游戏题材的方式是——",
-    a:{t:"我私人的执念和热爱",s:1},
-    b:{t:"受众广、好传播、有市场的题材",s:-1},
-    c:{t:"哪个我技术上 hold 得住就选哪个",s:0}},
-  {q:"看到一条差评,你最在意的是——",
-    a:{t:"他没 get 到我真正想表达的东西",s:1},
-    b:{t:"它会拉低转化率和评分",s:-1},
-    c:{t:"不敢看,直接关掉页面",s:0}},
-  {q:"你理想中的『成功』是——",
-    a:{t:"成为某些人心里的神作",s:1},
-    b:{t:"财富自由,开自己的工作室",s:-1},
-    c:{t:"至少回本,别赔进去",s:0}},
-  {q:"去参加游戏展,你最想要的是——",
-    a:{t:"有人玩到当场震撼/落泪",s:1},
-    b:{t:"谈下发行、渠道、合作",s:-1},
-    c:{t:"展位有免费午饭和水",s:0}},
-  {q:"关于 DLC,你的态度是——",
-    a:{t:"只在故事真的需要时才做",s:1},
-    b:{t:"上线前就规划好的收入来源",s:-1},
-    c:{t:"DLC?我本体都还没做完",s:0}},
-  {q:"做游戏时,你更在意——",
-    a:{t:"它够不够独特、够不够有我的味道",s:1},
-    b:{t:"它够不够好卖、够不够多人玩",s:-1},
-    c:{t:"它今晚能不能跑起来不崩",s:0}},
-  {q:"用一句话形容你做游戏这件事——",
-    a:{t:"我在用代码写诗",s:1},
-    b:{t:"我在经营一门生意",s:-1},
-    c:{t:"我在和拖延症贴身肉搏",s:0}},
+  {t:"比起销量,我更在意有没有人被我的游戏真正打动。", d:1},
+  {t:"就算不赚钱,只要作品有灵魂,我也满足。", d:1},
+  {t:"我做游戏,首先是为了表达我自己想表达的东西。", d:1},
+  {t:"哪怕有人出钱,我也不会为了好卖去改我最珍视的核心玩法。", d:1},
+  {t:"一句『这游戏改变了我』,胜过一百份销量报表。", d:1},
+  {t:"我宁可做小众神作,也不愿做无聊但赚钱的东西。", d:1},
+  {t:"选题材时,我跟着自己的执念走,而不是看市场。", d:1},
+  {t:"美术和氛围要服务于我的表达,而不是转化率。", d:1},
+  {t:"我做游戏是因为非做不可,而不是因为它能变现。", d:1},
+  {t:"看到空洞却大卖的爆款,我会忍不住想『这也配叫游戏』。", d:1},
+  {t:"立项前,我会先研究这个品类近期的销量数据。", d:-1},
+  {t:"一款游戏好不好,最终还是看它能不能赚到钱。", d:-1},
+  {t:"该恰饭的时候就得恰饭,情怀可以往后放。", d:-1},
+  {t:"我会按『哪种风格转化率高』来决定美术方向。", d:-1},
+  {t:"我做游戏的终极目标,是财富自由或开自己的工作室。", d:-1},
+  {t:"DLC 和后续内容,我会在上线前就规划成收入来源。", d:-1},
+  {t:"定价我会做竞品和心理锚点分析,而不是凭感觉。", d:-1},
+  {t:"比起『叫好』,我更想要『叫座』。", d:-1},
+  {t:"只要市场够大,我愿意做自己其实没那么爱的题材。", d:-1},
+  {t:"说到底,我是把做游戏当成一门生意在经营。", d:-1},
 ];
 
-/* ===== 维度 1 = 产出 Y (发售 +1 / 永不发售 -1),18 题 ===== */
 const QY = [
-  {q:"你硬盘里『快做完了』的项目有几个?",
-    a:{t:"我会逼自己 ship,做完的都发售了",s:1},
-    b:{t:"一大堆,但没有一个真的发售",s:-1},
-    c:{t:"发售过一个,然后再没复现过那个奇迹",s:0}},
-  {q:"『Done is better than perfect』,你的反应?",
-    a:{t:"对,先发出去再说",s:1},
-    b:{t:"不行,这里还能再打磨一下……再一下……",s:-1},
-    c:{t:"我完全同意……但只对别人的项目",s:0}},
-  {q:"Deadline 对你意味着什么?",
-    a:{t:"神圣不可侵犯,到点我就发",s:1},
-    b:{t:"Deadline?那是什么,能玩吗",s:-1},
-    c:{t:"我会定,然后温柔地把它一推再推",s:0}},
-  {q:"开发到一半,你想到一个超酷的新机制。",
-    a:{t:"记下来,发售之后再考虑",s:1},
-    b:{t:"立刻加!这游戏迟早吊打 3A,宇宙第一",s:-1},
-    c:{t:"先记进 TODO,然后再没打开过",s:0}},
-  {q:"你的功能清单(feature list)趋势是——",
-    a:{t:"越砍越短,直到能发售",s:1},
-    b:{t:"越写越长,自己都快 hold 不住",s:-1},
-    c:{t:"有清单,但从来不照着做",s:0}},
-  {q:"你典型的一天开发长这样——",
-    a:{t:"定目标 → 完成 → 收工",s:1},
-    b:{t:"重构昨天的代码 → 不满意 → 重写",s:-1},
-    c:{t:"打开引擎 → 刷社区 → 关掉引擎",s:0}},
-  {q:"项目做到 70% 完成度时,你通常会——",
-    a:{t:"冲刺收尾,准备上架",s:1},
-    b:{t:"推倒重做,这一版配不上我",s:-1},
-    c:{t:"开个新项目,这个先放放",s:0}},
-  {q:"关于『再打磨一下』——",
-    a:{t:"适可而止,发了再迭代",s:1},
-    b:{t:"永远还能更好,不着急",s:-1},
-    c:{t:"打磨?我都还没做出来呢",s:0}},
-  {q:"你已经公开发布过的游戏数量是——",
-    a:{t:"好几个,稳定产出",s:1},
-    b:{t:"零——但你们多半没玩过我十几年前那张自制地图",s:-1},
-    c:{t:"一个,然后停更跑路了",s:0}},
-  {q:"面对一个 bug,你的第一反应——",
-    a:{t:"能发售就行,先标记后修",s:1},
-    b:{t:"必须全清,带 bug 不配发售",s:-1},
-    c:{t:"bug?那是隐藏玩法",s:0}},
-  {q:"当项目范围开始失控,你会——",
-    a:{t:"果断砍需求,保住发售",s:1},
-    b:{t:"加钱加时间继续做大",s:-1},
-    c:{t:"假装没看见,继续往里塞",s:0}},
-  {q:"你和『发售』这件事的关系是——",
-    a:{t:"老朋友,经常见面",s:1},
-    b:{t:"听说过,但没见过",s:-1},
-    c:{t:"见过一次,留下了心理阴影",s:0}},
-  {q:"被人催进度时,你会说——",
-    a:{t:"给得出明确的发售日期",s:1},
-    b:{t:"『引擎都写好了,就差美术、策划、和开始』",s:-1},
-    c:{t:"『在做了在做了』(其实没在做)",s:0}},
-  {q:"做游戏最爽的瞬间是——",
-    a:{t:"点下『发布』按钮那一刻",s:1},
-    b:{t:"想到一个新点子那一刻",s:-1},
-    c:{t:"那么远的瞬间我还没体验过",s:0}},
-  {q:"你当前项目的版本号大概是——",
-    a:{t:"已经 1.0,甚至 2.0",s:1},
-    b:{t:"永远停在 0.3 pre-alpha",s:-1},
-    c:{t:"没有版本号,因为没构建过",s:0}},
-  {q:"一场 game jam 结束之后,你——",
-    a:{t:"把好点子打磨成完整游戏并发售",s:1},
-    b:{t:"又攒了个『载入史册』级的神作原型,当然没做完",s:-1},
-    c:{t:"jam 本身都没做完",s:0}},
-  {q:"对『先发个 demo 试水』的态度——",
-    a:{t:"好主意,逼自己产出",s:1},
-    b:{t:"demo 也得完美,不能丢人",s:-1},
-    c:{t:"demo = 我目前唯一的成品",s:0}},
-  {q:"你最可能的墓志铭是——",
-    a:{t:"『他做完了,并且发售了』",s:1},
-    b:{t:"『他的 dream game 即将上线』",s:-1},
-    c:{t:"『他本来打算开始的』",s:0}},
+  {t:"『先发售,再迭代』这句话,我信,也照做。", d:1},
+  {t:"我动手做的项目,基本最后都真的发售了。", d:1},
+  {t:"Deadline 对我是神圣的,到点就发。", d:1},
+  {t:"与其无限打磨,我更愿意先把游戏送到玩家手里。", d:1},
+  {t:"范围一旦失控,我会果断砍需求,保住发售。", d:1},
+  {t:"我能给得出明确的发售日期。", d:1},
+  {t:"有 bug 也先标记、后修,绝不让它挡住发售。", d:1},
+  {t:"点下『发布』那一刻的爽,胜过想到新点子。", d:1},
+  {t:"我已经公开发布过不止一个游戏。", d:1},
+  {t:"game jam 之后,我会把好点子真的做成完整游戏发售。", d:1},
+  {t:"我硬盘里『快做完了』的项目一大堆,却没几个真发售。", d:-1},
+  {t:"『还能再打磨一下』是我永远的口头禅。", d:-1},
+  {t:"我经常推倒重做,总觉得这一版配不上自己。", d:-1},
+  {t:"我的 dream game,大概比我的人生还长。", d:-1},
+  {t:"我立的 flag 很多,真正完成的很少。", d:-1},
+  {t:"项目做到一半,我很容易被新点子带跑、开新坑。", d:-1},
+  {t:"『引擎都写好了,就差美术、策划、和开始』——这话很像我。", d:-1},
+  {t:"我的版本号好像永远停在 pre-alpha。", d:-1},
+  {t:"我坚信我做的东西迟早会吊打 3A、宇宙第一。", d:-1},
+  {t:"比起『做完』,我更享受『在做』这个过程本身。", d:-1},
 ];
 
-/* 交错排列,X/Y 各 18 题 = 36 题 */
+/* 交错排列,X/Y 各 20 题 = 40 题 */
 const QUESTIONS = [];
-for(let i=0;i<18;i++){
+for(let i=0;i<20;i++){
   QUESTIONS.push({...QX[i], ax:0, axis:"内核 · WHY · 你为什么做游戏"});
   QUESTIONS.push({...QY[i], ax:1, axis:"产出 · OUTPUT · 你做不做得完"});
 }
@@ -555,12 +497,12 @@ for(let i=0;i<18;i++){
 /* ===== 25 人格:键 = "X-Y" ,X 0=生意…4=灵魂 ,Y 0=没开工…4=发售之神 ===== */
 const PERSONAS = {
   // X0 纯生意
-  "0-0":{code:"孽神", cls:"嘴炮大酋长", legend:true, tag:"嘴炮吊打3A,demo 永远在下周",
-    desc:"魔兽3 地图编辑器里长大的『神童』,一开口就是吊打 3A、宇宙第一,落地却永远是『下周放出 demo』。那种介乎失智与狂人之间的发言,让全群又想拉黑又舍不得。喧嚣背后,大概还住着那个小时候跟爸爸一起打仙剑、打魔兽的小孩——只是没人敢戳破。",
-    mate:"TODO", mw:"都只动嘴,不动引擎", clash:"BOSS", cw:"他闷声发财,你闷声吹牛"},
-  "0-1":{code:"君神", cls:"梭哈殉道者", legend:true, tag:"贷款 450 万做游戏,后销声匿迹",
-    desc:"你不是在做游戏,是在 all-in 一场豪赌。贷款 450 万梭哈进 dream game,身边人拦都拦不住。然后……项目连同你一起人间蒸发。每个新人都听过你的传说,引以为戒,然后重蹈覆辙。",
-    mate:"默神", mw:"梭哈殉道者联盟", clash:"SAFE", cw:"他一分不亏,你赔上身家"},
+  "0-0":{code:"HSLR", cls:"搞钱型选手", tag:"天天谈合作搞钱,游戏零行代码",
+    desc:"你永远在谈合作、拉投资、搞钱、画大饼——商业嗅觉拉满,唯独游戏本体零行代码。你不是在做游戏,你在做一个『关于做游戏的生意』。",
+    mate:"TODO", mw:"都在搞表面功夫,不碰引擎", clash:"BOSS", cw:"他闷声出货,你闷声搞钱"},
+  "0-1":{code:"PIVOT", cls:"转型怪", tag:"每月一个新赛道,没一个做完",
+    desc:"肉鸽、幸存者like、放置、AI……你永远在追下一个风口,框架刚搭好就推倒去追新热点。引擎倒是越来越熟,游戏一个没出。",
+    mate:"EA", mw:"追风口的难兄难弟", clash:"SHIP", cw:"人家专注把一个做完发售"},
   "0-2":{code:"FLIP", cls:"换皮搬运王", tag:"粗制滥造,但真的上架了",
     desc:"换皮、拼素材、蹭关键词,品质感人,但你是真出货。差评如潮、退款如雨,而你已经在做下一个换皮了。可怕的执行力,可耻的良心。",
     mate:"COPY", mw:"缝合出货兄弟", clash:"ICON", cw:"纯艺术之神看你一眼想报警"},
@@ -573,10 +515,10 @@ const PERSONAS = {
   // X1 偏商业
   "1-0":{code:"TODO", cls:"清单仙人", tag:"点子三百条,完成零条",
     desc:"你的 Notion 躺着300个游戏点子和变现方案,排版精美、配色讲究,就是没写过一行代码。整理点子本身就让你很满足。",
-    mate:"孽神", mw:"都只动嘴,不动引擎", clash:"FARM", cw:"他在出货,你在排版"},
+    mate:"HSLR", mw:"都在搞表面功夫,不碰引擎", clash:"FARM", cw:"他在出货,你在排版"},
   "1-1":{code:"EA", cls:"抢先体验之神", tag:"1.0 永远在地平线那头",
     desc:"你深谙『抢先体验』的艺术,路线图画得比 NASA 还细,玩家边骂边充值。游戏能不能完工不重要,氛围到位就行。(别真跑路啊。)",
-    mate:"君神", mw:"高风险玩家俱乐部", clash:"SOLO", cw:"老实匠人看不惯你画饼"},
+    mate:"PIVOT", mw:"追风口的画饼同好", clash:"SOLO", cw:"老实匠人看不惯你画饼"},
   "1-2":{code:"COPY", cls:"克隆缝合怪", tag:"什么火抄什么,手速还挺快",
     desc:"哪个品类爆了,两周内你就有个像模像样的仿品上架。原创?风险太高。你只做被市场验证过的安全牌,而且出得很快。",
     mate:"FLIP", mw:"缝合出货兄弟", clash:"CULT", cw:"原创邪典最鄙视抄袭"},
@@ -598,10 +540,10 @@ const PERSONAS = {
     mate:"WISH", mw:"用爱发电没回报", clash:"GOTY", cw:"那个又叫好又叫座的混蛋"},
   "2-3":{code:"SHIP", cls:"发售机器", tag:"『先发了再迭代』的信徒",
     desc:"你找到了野心与现实的平衡点:做完、发售、复盘、再来。不神化也不摆烂,稳定产出能玩的好游戏。稀有的健康开发者。",
-    mate:"SOLO", mw:"健康开发者之交", clash:"孽神", cw:"他还在群里画饼,你已稳定发售"},
+    mate:"SOLO", mw:"健康开发者之交", clash:"HSLR", cw:"他还在群里谈合作,你已稳定发售"},
   "2-4":{code:"GOTY", cls:"年度收割机", tag:"又叫好又叫座的那个混蛋",
     desc:"你居然同时拥有灵魂、销量和执行力。每发一作都进年度榜,玩家爱、媒体夸、钱包鼓。其他 24 种人格都恨你,而你浑然不觉。",
-    mate:"GOAT", mw:"神作高产联盟", clash:"孽神", cw:"勤奋成果 vs 群里嘴炮"},
+    mate:"GOAT", mw:"神作高产联盟", clash:"HSLR", cw:"勤奋成果 vs 一堆空头合作"},
   // X3 偏理想
   "3-0":{code:"DREAM", cls:"白日梦艺术家", tag:"脑内已是神作,工程零进度",
     desc:"你能给 dream game 讲三小时世界观、画满一本设定集、配好原声带歌单……唯独没打开引擎。它太完美了,完美到你不敢开始。",
@@ -617,14 +559,14 @@ const PERSONAS = {
     mate:"SHIP", mw:"匠人之交", clash:"EA", cw:"你受不了边画饼边圈钱"},
   "3-4":{code:"GOAT", cls:"神作锻造者", tag:"闭关出关,直接封神",
     desc:"有灵魂、有执行力、还高产。不靠营销靠口碑,每作都被供起来。别人问你打哪冒出来的,答案永远是:地下室。",
-    mate:"ICON", mw:"殿堂级邻居", clash:"孽神", cw:"地下室封神 vs 群里嘴炮"},
+    mate:"ICON", mw:"殿堂级邻居", clash:"HSLR", cw:"地下室封神 vs 群里搞钱"},
   // X4 纯艺术家
   "4-0":{code:"GHOST", cls:"幽灵开发者", tag:"你的神作只存在于想象中",
     desc:"纯粹到不敢动工,怕现实弄脏脑子里那个完美的形状。你是传说,只是没人见过你的游戏——包括你自己。",
     mate:"DREAM", mw:"脑内神作同好", clash:"BOSS", cw:"他不懂浪漫,但他在数钱"},
-  "4-1":{code:"默神", cls:"消失的天才", legend:true, tag:"高中辍学做游戏,后销声匿迹",
-    desc:"为了心中那款游戏,你连高中都不读了,全部押上。才华是真的,热爱是真的——可某天,你连同你的游戏一起从所有人的视野里消失。没人知道你去了哪,只剩一个名字在群里流传成神话。",
-    mate:"君神", mw:"梭哈殉道者联盟", clash:"SHIP", cw:"他稳稳发售,你燃烧殆尽"},
+  "4-1":{code:"REDO", cls:"删库重来侠", tag:"引擎换四个,游戏还在第一章",
+    desc:"你对自己作品的标准高到病态,每隔三个月就愤怒地把代码全删了重写。问题从来不是引擎,但你坚持认为是。纯粹,且痛苦。",
+    mate:"GRND", mw:"完美主义自毁同盟", clash:"BOSS", cw:"同样标准高,人家发售了"},
   "4-2":{code:"COZY", cls:"温暖供应商", tag:"你的游戏像一杯热可可",
     desc:"产量不高,但每个都有灵魂、社区超暖。玩家会哭着写五千字好评,把它当避难所。你卖的不是玩法,是情绪价值。",
     mate:"CULT", mw:"情绪价值供应商", clash:"LOOT", cw:"你嫌他把游戏做成了生意"},
@@ -633,18 +575,40 @@ const PERSONAS = {
     mate:"SOLO", mw:"克制产出二人组", clash:"FLIP", cw:"换皮搬运令你心痛"},
   "4-4":{code:"ICON", cls:"殿堂级", tag:"理论上不该存在的人",
     desc:"纯粹的艺术追求 + 神级产出。你只做心中真正想做的,却部部封神、产量惊人。教科书会写你的名字,而你还在闷头做下一部。",
-    mate:"GOAT", mw:"神坛上的邻居", clash:"孽神", cw:"存在,与虚空嘴炮"},
+    mate:"GOAT", mw:"神坛上的邻居", clash:"HSLR", cw:"封神,与一堆空头支票"},
 };
 
 /* ===== 典藏卡:三位神人的卡面主题 ===== */
 const CARDS = {
-  "孽神":{no:"01", accent:"#8cff66", accent2:"#b06bff", subtitle:"DELUSIONAL WARCHIEF", emblem:"crown",
+  "孽神的化身":{no:"01", accent:"#8cff66", accent2:"#b06bff", subtitle:"DELUSIONAL WARCHIEF", emblem:"crown",
     flavor:"魔兽3 地图编辑器养大的『神童』\n扬言单人做出吊打3A的宇宙神作\n至今最大成就:让全群信他在做"},
-  "君神":{no:"07", accent:"#ff5d6c", accent2:"#ffc24b", subtitle:"THE ALL-IN MARTYR", emblem:"coin",
+  "君神的化身":{no:"07", accent:"#ff5d6c", accent2:"#ffc24b", subtitle:"THE ALL-IN MARTYR", emblem:"coin",
     flavor:"贷款 450 万,梭哈一场。然后,再无音讯。"},
-  "默神":{no:"13", accent:"#6bd0ff", accent2:"#9d7bff", subtitle:"THE VANISHED GENIUS", emblem:"ghost",
+  "默神的化身":{no:"13", accent:"#6bd0ff", accent2:"#9d7bff", subtitle:"THE VANISHED GENIUS", emblem:"ghost",
     flavor:"他辍学,他燃烧,他消失——只留下一个名字。"},
+  "鸭神的化身":{no:"25", accent:"#ffd23f", accent2:"#36e0c4", subtitle:"DROPOUT DREAMCHASER", emblem:"duck",
+    flavor:"职高辍学,全程自学,\n直播十五小时,粉丝成群。\n『钱?不过是追梦的副产物。』"},
 };
+
+/* ===== 隐藏「化身」:不在 25 矩阵中,把维度推到极端才会触发 ===== */
+const AVATARS = [
+  {code:"默神的化身", cls:"消失的天才", legend:true, tag:"高中辍学做游戏,后销声匿迹",
+    desc:"为了心中那款游戏,你连高中都不读了,全部押上。才华是真的,热爱是真的——可某天,你连同你的游戏一起从所有人的视野里消失。没人知道你去了哪,只剩一个名字在群里流传成神话。",
+    mate:"REDO", mw:"完美主义自毁同盟", clash:"SHIP", cw:"他稳稳发售,你燃烧殆尽",
+    cell:"4-1", gate:(sx,sy)=> sy<=-26 && sx>=22},
+  {code:"孽神的化身", cls:"嘴炮大酋长", legend:true, tag:"嘴炮吊打3A,demo 永远在下周",
+    desc:"魔兽3 地图编辑器里长大的『神童』,一开口就是吊打 3A、宇宙第一,落地却永远是『下周放出 demo』。那种介乎失智与狂人之间的发言,让全群又想拉黑又舍不得。喧嚣背后,大概还住着那个小时候跟爸爸一起打仙剑、打魔兽的小孩——只是没人敢戳破。",
+    mate:"TODO", mw:"都只动嘴,不动引擎", clash:"BOSS", cw:"他闷声发财,你闷声吹牛",
+    cell:"0-0", gate:(sx,sy)=> sy<=-26 && sx<=-22},
+  {code:"君神的化身", cls:"梭哈殉道者", legend:true, tag:"贷款 450 万做游戏,后销声匿迹",
+    desc:"你既要灵魂又要钱,于是把一切都押上——贷款 450 万梭哈进 dream game,身边人拦都拦不住。然后……项目连同你一起人间蒸发。每个新人都听过你的传说,引以为戒,然后重蹈覆辙。",
+    mate:"PIVOT", mw:"高风险玩家俱乐部", clash:"SAFE", cw:"他一分不亏,你赔上身家",
+    cell:"0-1", gate:(sx,sy)=> sy<=-26 && sx>=-10 && sx<=10},
+  {code:"鸭神的化身", cls:"退学追梦教主", legend:true, tag:"退学自学,经济独立,『我无敌了』",
+    desc:"职高辍学、全程自学,从绘画一路杀到游戏开发,直播十五小时不带喘。当别人还在纠结『追梦会不会饿死』,你已经经济独立、粉丝成群——用你的话说:『我无敌了。』你坚信钱只是追梦的副产物,AI 也不过是你手里的一支笔。当年大家拿『默神』吓唬你,如今你活成了那个反例本身。",
+    mate:"GOTY", mw:"又有梦又能落地的狠人", clash:"默神的化身", cw:"他追梦追到消失,你追梦追到无敌",
+    cell:"2-4", gate:(sx,sy)=> sy>=28 && sx>=-8 && sx<=8},
+];
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function wrapTspan(text, max, x, cy, lh){
@@ -677,6 +641,14 @@ function emblem(type, a){
       <circle cx="46" cy="-6" r="6" opacity=".7"/><circle cx="60" cy="-30" r="5" opacity=".5"/>
       <circle cx="40" cy="-40" r="4" opacity=".55"/><circle cx="66" cy="6" r="4" opacity=".4"/>
       <circle cx="54" cy="22" r="3" opacity=".3"/></g>`;
+  if(type==="duck") return `<g transform="translate(260,252)" filter="url(#glow)">
+      <ellipse cx="-6" cy="26" rx="58" ry="40" fill="${a}"/>
+      <path d="M-56,18 q-26,-6 -8,-32 q6,18 20,16 Z" fill="${a}"/>
+      <circle cx="42" cy="-24" r="29" fill="${a}"/>
+      <path d="M62,-36 q44,2 44,12 q0,10 -44,12 q-9,-12 0,-24 Z" fill="${a}"/>
+      <path d="M84,-22 q14,0 20,1" fill="none" stroke="#0c0a1a" stroke-width="4" opacity=".5"/>
+      <circle cx="48" cy="-30" r="5" fill="#0c0a1a"/>
+      <path d="M-30,32 q26,24 54,6" fill="none" stroke="#0c0a1a" stroke-width="6" opacity=".4" stroke-linecap="round"/></g>`;
   return `<text x="260" y="270" fill="${a}" font-size="84" text-anchor="middle" filter="url(#glow)">★</text>`;
 }
 function buildCardSVG(p, c){
@@ -707,7 +679,7 @@ function buildCardSVG(p, c){
   <text x="478" y="117" fill="#8b82b8" font-size="14" text-anchor="end" letter-spacing="1">NO.${m.no} / 25</text>
   <circle cx="260" cy="250" r="98" fill="url(#med)" stroke="${a}" stroke-width="3"/>
   ${emblem(m.emblem, a)}
-  <text x="260" y="418" fill="#ffffff" font-size="66" font-weight="900" text-anchor="middle" letter-spacing="8">${esc(p.code)}</text>
+  <text x="260" y="418" fill="#ffffff" font-size="${[...p.code].length>=5?46:66}" font-weight="900" text-anchor="middle" letter-spacing="${[...p.code].length>=5?3:8}">${esc(p.code)}</text>
   <text x="260" y="446" fill="${a}" font-size="14" text-anchor="middle" letter-spacing="3">${esc(m.subtitle)}</text>
   <text x="260" y="478" fill="#cfc8ef" font-size="19" font-weight="700" text-anchor="middle">${esc(p.cls)}</text>
   <rect x="42" y="500" width="436" height="92" rx="12" fill="#15102b" stroke="${a}" stroke-opacity=".3"/>
@@ -730,9 +702,17 @@ const AXES = [
   {l:"永不发售", r:"发售之神"}, // Y 条:左=没开工,右=发售
 ];
 
+const LIKERT = [
+  {agr:2, cls:"a2", lab:"非常同意"},
+  {agr:1, cls:"a1", lab:"比较同意"},
+  {agr:0, cls:"n",  lab:"中立 / 说不准"},
+  {agr:-1,cls:"d1", lab:"比较不同意"},
+  {agr:-2,cls:"d2", lab:"非常不同意"},
+];
+
 const CLOG = [
   "> linking soul.dll ............ ok",
-  "> scanning 36 answers ......... ok",
+  "> scanning 40 answers ......... ok",
   "> resolving dependencies ...... 47 unfinished",
   "> computing coordinates ...... ████",
   "> locating you on 5x5 grid ... done",
@@ -767,20 +747,23 @@ const GDTI = (() => {
     $("qCount").textContent = String(idx+1).padStart(2,"0") + "/" + QUESTIONS.length;
     $("qFill").style.width = (idx/QUESTIONS.length*100) + "%";
     $("qAxis").textContent = q.axis;
-    $("qText").textContent = q.q;
+    $("qText").textContent = q.t;
     const opts = $("qOpts");
     opts.innerHTML = "";
-    [["A",q.a],["B",q.b],["C",q.c]].forEach(([k,o])=>{
-      const b=document.createElement("button");
-      b.className="opt"; b.dataset.k=k; b.textContent=o.t;
-      b.onclick=()=>pick(q.ax, o.s);
-      opts.appendChild(b);
+    const row=document.createElement("div");
+    row.className="likert";
+    row.innerHTML = `<span class="lk-end agree">同意</span>` +
+      LIKERT.map(o=>`<button class="lk ${o.cls}" data-agr="${o.agr}" title="${o.lab}"></button>`).join("") +
+      `<span class="lk-end disagree">不同意</span>`;
+    opts.appendChild(row);
+    [...row.querySelectorAll(".lk")].forEach(btn=>{
+      btn.onclick=()=>pick(q.ax, q.d, Number(btn.dataset.agr));
     });
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  function pick(ax, s){
-    answers.push({ax, s});
+  function pick(ax, d, agr){
+    answers.push({ax, s: agr*d});          // 同意+2…不同意-2,乘以题目方向
     idx++;
     if(idx < QUESTIONS.length){ render(); } else { compile(); }
   }
@@ -797,8 +780,8 @@ const GDTI = (() => {
     },360);
   }
 
-  function bucket(s){            // s in -18..18  ->  0..4
-    const t=(s+18)/36;
+  function bucket(s){            // s in -40..40  ->  0..4
+    const t=(s+40)/80;
     return Math.max(0, Math.min(4, Math.floor(t*5)));
   }
 
@@ -806,15 +789,18 @@ const GDTI = (() => {
     let sx=0, sy=0;
     answers.forEach(a => a.ax===0 ? (sx+=a.s) : (sy+=a.s));
     return {
-      xi:bucket(sx), yi:bucket(sy),
-      xpct:(sx+18)/36, ypct:(sy+18)/36
+      xi:bucket(sx), yi:bucket(sy), sx, sy,
+      xpct:(sx+40)/80, ypct:(sy+40)/80
     };
   }
 
   function finish(){
-    const {xi,yi,xpct,ypct} = tally();
+    const {xi,yi,sx,sy,xpct,ypct} = tally();
     lastCoords = {xi,yi,xpct,ypct};
-    const r = PERSONAS[xi+"-"+yi];
+    let r = PERSONAS[xi+"-"+yi];
+    const av = AVATARS.find(a => a.gate(sx, sy));   // 隐藏化身:极端才触发,不在矩阵中
+    let hiX=xi, hiY=yi, avaHi=false;
+    if(av){ r = av; [hiX,hiY] = av.cell.split("-").map(Number); avaHi=true; }  // 高亮化身的原格
     current = r;
 
     // 抽中传说级 -> 解锁(并持久化)
@@ -833,11 +819,11 @@ const GDTI = (() => {
     for(let y=4;y>=0;y--){
       for(let x=0;x<=4;x++){
         const p = PERSONAS[x+"-"+y];
-        const locked = p.legend && !unlocked.has(p.code);
+        const isHi = (x===hiX && y===hiY);
         const cell=document.createElement("div");
-        cell.className = "cell" + (p.legend?" legend":"") + (locked?" locked":"") + ((x===xi&&y===yi)?" hi":"");
-        cell.textContent = displayCode(p.code);
-        cell.title = locked ? "??? · 传说级(未解锁)" : (p.code + " · " + p.cls + (p.legend?" · 传说级":""));
+        cell.className = "cell" + (isHi ? (avaHi?" hi ava":" hi") : "");
+        cell.textContent = p.code;
+        cell.title = p.code + " · " + p.cls;
         mx.appendChild(cell);
       }
     }
@@ -864,13 +850,20 @@ const GDTI = (() => {
     $("rMateCode").textContent = displayCode(r.mate); $("rMateWhy").textContent = r.mw;
     $("rClashCode").textContent = displayCode(r.clash); $("rClashWhy").textContent = r.cw;
 
+    const isAva = !!av;                                   // 化身:用典藏卡盖住矩阵
+    $("matrixWrap").style.display = isAva ? "none" : "block";
+    $("cardInline").style.display = isAva ? "block" : "none";
+    if(isAva){
+      makeCard();
+      $("cardInlineImg").src = cardDataURL;
+      const cc = CARDS[current.code]; if(cc) $("cardInlineFrame").style.setProperty("--card-accent", cc.accent+"80");
+    }
     $("cardCta").style.display = r.legend ? "inline-flex" : "none";
 
     show("result");
     window.scrollTo({top:0, behavior:"smooth"});
     if(justUnlocked){
-      setTimeout(()=>toast("🔓 解锁传说级人格:"+r.code), 700);
-      setTimeout(showCard, 1100);
+      setTimeout(()=>toast("🔓 解锁隐藏化身:"+r.code), 1000);
     }
   }
 
@@ -882,7 +875,7 @@ const GDTI = (() => {
 「${current.tag}」
 ${current.desc}
 灵魂搭档：${current.mate}　天敌：${current.clash}
-—— 36题测出你在 5×5 开发者矩阵的哪一格?能不能抽到隐藏的「神人」?
+—— 40题测出你在 5×5 开发者矩阵的哪一格?能不能触发隐藏的「化身」?
 👾 独立开发者交流群 1043785282,来对线`;
     navigator.clipboard?.writeText(txt).then(()=>toast("已复制到剪贴板 ✓")).catch(()=>{
       const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
@@ -900,12 +893,16 @@ ${current.desc}
     const t=$("toast"); t.textContent = msg || "已复制到剪贴板 ✓";
     t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000);
   }
-  function showCard(){
-    if(!current || !current.legend || !lastCoords) return;
+  function makeCard(){
     cardSVG = buildCardSVG(current, lastCoords);
     cardDataURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(cardSVG);
-    const f = $("cardFrame"); const card = CARDS[current.code];
-    if(card) f.style.setProperty("--card-accent", card.accent + "80");
+    return cardDataURL;
+  }
+  function showCard(){
+    if(!current || !current.legend || !lastCoords) return;
+    makeCard();
+    const card = CARDS[current.code];
+    if(card) $("cardFrame").style.setProperty("--card-accent", card.accent + "80");
     $("cardImg").src = cardDataURL;
     $("cardModal").classList.add("on");
   }

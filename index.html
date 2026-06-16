@@ -145,6 +145,17 @@
   .lk.n:hover{background:var(--dim);}
   .lk.d1:hover{background:#8a5bd6;}
   .lk.d2:hover{background:var(--pink);box-shadow:var(--glow-pink);}
+  .lk.sel.a2{background:var(--cyan);box-shadow:var(--glow-cyan);}
+  .lk.sel.a1{background:#2aa890;}
+  .lk.sel.n{background:var(--dim);}
+  .lk.sel.d1{background:#8a5bd6;}
+  .lk.sel.d2{background:var(--pink);box-shadow:var(--glow-pink);}
+  .lk.sel{outline:2px solid rgba(255,255,255,.35);outline-offset:3px;}
+  .q-nav{display:flex;justify-content:center;margin-top:20px;min-height:36px;}
+  .q-back{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--muted);background:transparent;
+    border:1px solid var(--line);border-radius:8px;padding:8px 18px;cursor:pointer;transition:all .15s;}
+  .q-back:hover{color:var(--cyan);border-color:var(--cyan);}
+  .q-back:active{transform:scale(.96);}
   @media(max-width:540px){
     .likert{gap:9px;padding-top:18px;}
     .lk-end{font-size:11px;}
@@ -341,6 +352,7 @@
       <div class="q-axis mono" id="qAxis"></div>
       <h2 class="q-text" id="qText"></h2>
       <div class="opts" id="qOpts"></div>
+      <div class="q-nav"><button class="q-back" id="qBack" onclick="GDTI.back()">← 上一步</button></div>
     </section>
 
     <!-- COMPILING -->
@@ -583,11 +595,11 @@ const CARDS = {
   "孽神的化身":{no:"01", accent:"#8cff66", accent2:"#b06bff", subtitle:"DELUSIONAL WARCHIEF", emblem:"crown",
     flavor:"魔兽3 地图编辑器养大的『神童』\n扬言单人做出吊打3A的宇宙神作\n至今最大成就:让全群信他在做"},
   "君神的化身":{no:"07", accent:"#ff5d6c", accent2:"#ffc24b", subtitle:"THE ALL-IN MARTYR", emblem:"coin",
-    flavor:"贷款 450 万,梭哈一场。然后,再无音讯。"},
+    flavor:"贷款 百万,梭哈一场。然后,再无音讯。"},
   "默神的化身":{no:"13", accent:"#6bd0ff", accent2:"#9d7bff", subtitle:"THE VANISHED GENIUS", emblem:"ghost",
     flavor:"他辍学,他燃烧,他消失——只留下一个名字。"},
-  "鸭神的化身":{no:"25", accent:"#ffd23f", accent2:"#36e0c4", subtitle:"DROPOUT DREAMCHASER", emblem:"duck",
-    flavor:"职高辍学,全程自学,\n直播十五小时,粉丝成群。\n『钱?不过是追梦的副产物。』"},
+  "鸭神的化身":{no:"25", accent:"#ffd23f", accent2:"#36e0c4", subtitle:"SELF-TAUGHT DREAMCHASER", emblem:"duck",
+    flavor:"离开校园,全程自学,\n直播十五小时,粉丝成群。\n『钱?不过是追梦的副产物。』"},
 };
 
 /* ===== 隐藏「化身」:不在 25 矩阵中,把维度推到极端才会触发 ===== */
@@ -600,12 +612,12 @@ const AVATARS = [
     desc:"魔兽3 地图编辑器里长大的『神童』,一开口就是吊打 3A、宇宙第一,落地却永远是『下周放出 demo』。那种介乎失智与狂人之间的发言,让全群又想拉黑又舍不得。喧嚣背后,大概还住着那个小时候跟爸爸一起打仙剑、打魔兽的小孩——只是没人敢戳破。",
     mate:"TODO", mw:"都只动嘴,不动引擎", clash:"BOSS", cw:"他闷声发财,你闷声吹牛",
     cell:"0-0", gate:(sx,sy)=> sy<=-26 && sx<=-22},
-  {code:"君神的化身", cls:"梭哈殉道者", legend:true, tag:"贷款 450 万做游戏,后销声匿迹",
-    desc:"你既要灵魂又要钱,于是把一切都押上——贷款 450 万梭哈进 dream game,身边人拦都拦不住。然后……项目连同你一起人间蒸发。每个新人都听过你的传说,引以为戒,然后重蹈覆辙。",
+  {code:"君神的化身", cls:"梭哈殉道者", legend:true, tag:"贷款 百万做游戏,后销声匿迹",
+    desc:"你既要灵魂又要钱,于是把一切都押上——贷款 百万梭哈进 dream game,身边人拦都拦不住。然后……项目连同你一起人间蒸发。每个新人都听过你的传说,引以为戒,然后重蹈覆辙。",
     mate:"PIVOT", mw:"高风险玩家俱乐部", clash:"SAFE", cw:"他一分不亏,你赔上身家",
     cell:"0-1", gate:(sx,sy)=> sy<=-26 && sx>=-10 && sx<=10},
-  {code:"鸭神的化身", cls:"退学追梦教主", legend:true, tag:"退学自学,经济独立,『我无敌了』",
-    desc:"职高辍学、全程自学,从绘画一路杀到游戏开发,直播十五小时不带喘。当别人还在纠结『追梦会不会饿死』,你已经经济独立、粉丝成群——用你的话说:『我无敌了。』你坚信钱只是追梦的副产物,AI 也不过是你手里的一支笔。当年大家拿『默神』吓唬你,如今你活成了那个反例本身。",
+  {code:"鸭神的化身", cls:"追梦教主", legend:true, tag:"离开校园,自学成才,『我无敌了』",
+    desc:"离开校园、全程自学,从绘画一路杀到游戏开发,直播十五小时不带喘。当别人还在纠结『追梦会不会饿死』,你已经经济独立、粉丝成群——用你的话说:『我无敌了。』你坚信钱只是追梦的副产物,AI 也不过是你手里的一支笔。当年大家拿『默神』吓唬你,如今你活成了那个反例本身。",
     mate:"GOTY", mw:"又有梦又能落地的狠人", clash:"默神的化身", cw:"他追梦追到消失,你追梦追到无敌",
     cell:"2-4", gate:(sx,sy)=> sy>=28 && sx>=-8 && sx<=8},
 ];
@@ -759,13 +771,24 @@ const GDTI = (() => {
     [...row.querySelectorAll(".lk")].forEach(btn=>{
       btn.onclick=()=>pick(q.ax, q.d, Number(btn.dataset.agr));
     });
+    const prev = answers[idx];                       // 之前答过(回退)就高亮原选项
+    if(prev){
+      const agr = prev.s * q.d;                      // s = agr*d -> agr = s*d (d=±1)
+      const sel = row.querySelector('.lk[data-agr="'+agr+'"]');
+      if(sel) sel.classList.add("sel");
+    }
+    $("qBack").style.visibility = idx>0 ? "visible" : "hidden";
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
   function pick(ax, d, agr){
-    answers.push({ax, s: agr*d});          // 同意+2…不同意-2,乘以题目方向
+    answers[idx] = {ax, s: agr*d};         // 同意+2…不同意-2,乘以方向;按序号存便于回退覆盖
     idx++;
     if(idx < QUESTIONS.length){ render(); } else { compile(); }
+  }
+
+  function back(){
+    if(idx > 0){ idx--; render(); }        // 回退到上一题,保留原选项以便查看/修改
   }
 
   function compile(){
@@ -934,7 +957,7 @@ ${current.desc}
 
   function restart(){ idx=0; answers.length=0; current=null; show("intro"); window.scrollTo({top:0,behavior:"smooth"}); }
 
-  return { start, copy, restart, group, showCard, closeCard, saveCard };
+  return { start, copy, restart, group, showCard, closeCard, saveCard, back };
 })();
 </script>
 </body>

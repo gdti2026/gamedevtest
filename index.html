@@ -180,6 +180,8 @@
 
   /* result */
   .r-head{text-align:center;margin-bottom:8px;}
+  .r-avatar{width:122px;height:122px;margin:8px auto 12px;}
+  .r-avatar svg{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));}
   .r-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
   .r-code{font-family:"Press Start 2P",monospace;font-size:54px;line-height:1.1;margin:14px 0 6px;color:#fff;
     text-shadow:4px 0 var(--pink), -4px 0 var(--cyan);word-break:break-word;}
@@ -391,6 +393,7 @@
     <section id="result" class="view">
       <div class="r-head">
         <div class="r-label mono">你的开发者类型是</div>
+        <div class="r-avatar" id="rAvatar"></div>
         <div class="r-badge" id="rBadge" style="display:none">★ 传说级 · LEGENDARY</div>
         <div class="r-code pixel" id="rCode">CODE</div>
         <div class="r-class" id="rClass"></div>
@@ -494,19 +497,17 @@
    d=+1 : 同意 → 正极(灵魂 / 发售) ; d=-1 : 同意 → 负极(生意 / 永不发售)
    每题计分 = 表态值(同意+2…不同意-2) × d ; 每维度 20 题,区间 -40~+40 ===== */
 const QX = [
-  {t:"比起销量,我更在意有没有人被我的游戏真正打动。", d:1},
   {t:"就算不赚钱,只要作品有灵魂,我也满足。", d:1},
   {t:"我做游戏,首先是为了表达我自己想表达的东西。", d:1},
-  {t:"哪怕有人出钱,我也不会为了好卖去改我最珍视的核心玩法。", d:1},
   {t:"一句『这游戏改变了我』,胜过一百份销量报表。", d:1},
   {t:"我宁可做小众神作,也不愿做无聊但赚钱的东西。", d:1},
   {t:"选题材时,我跟着自己的执念走,而不是看市场。", d:1},
   {t:"美术和氛围要服务于我的表达,而不是转化率。", d:1},
-  {t:"我做游戏是因为非做不可,而不是因为它能变现。", d:1},
-  {t:"看到空洞却大卖的爆款,我会忍不住想『这也配叫游戏』。", d:1},
+  {t:"把脑子里的东西亲手做出来,本身就是我最大的回报。", d:1},
+  {t:"做游戏对我更像在跟自己对话,而不是讨好玩家。", d:1},
+  {t:"我愿意为一个只有自己在乎的细节,较劲到深夜。", d:1},
+  {t:"即使牺牲一部分易懂性,我也想保留属于自己的表达。", d:1},
   {t:"立项前,我会先研究这个品类近期的销量数据。", d:-1},
-  {t:"一款游戏好不好,最终还是看它能不能赚到钱。", d:-1},
-  {t:"该恰饭的时候就得恰饭,情怀可以往后放。", d:-1},
   {t:"我会按『哪种风格转化率高』来决定美术方向。", d:-1},
   {t:"我做游戏的终极目标,是财富自由或开自己的工作室。", d:-1},
   {t:"DLC 和后续内容,我会在上线前就规划成收入来源。", d:-1},
@@ -514,29 +515,31 @@ const QX = [
   {t:"比起『叫好』,我更想要『叫座』。", d:-1},
   {t:"只要市场够大,我愿意做自己其实没那么爱的题材。", d:-1},
   {t:"说到底,我是把做游戏当成一门生意在经营。", d:-1},
+  {t:"如果大量玩家反馈某个设计不好玩,我愿意推翻自己的原方案。", d:-1},
+  {t:"商店页、宣传图、转化漏斗这些营销活,我会认真去抠。", d:-1},
 ];
 
 const QY = [
-  {t:"『先发售,再迭代』这句话,我信,也照做。", d:1},
-  {t:"我动手做的项目,基本最后都真的发售了。", d:1},
   {t:"Deadline 对我是神圣的,到点就发。", d:1},
   {t:"与其无限打磨,我更愿意先把游戏送到玩家手里。", d:1},
   {t:"范围一旦失控,我会果断砍需求,保住发售。", d:1},
-  {t:"我能给得出明确的发售日期。", d:1},
   {t:"有 bug 也先标记、后修,绝不让它挡住发售。", d:1},
   {t:"点下『发布』那一刻的爽,胜过想到新点子。", d:1},
   {t:"我已经公开发布过不止一个游戏。", d:1},
   {t:"game jam 之后,我会把好点子真的做成完整游戏发售。", d:1},
+  {t:"我会先做出一个能玩的最小版本,再逐步往上加。", d:1},
+  {t:"『完成度 80% 就先上线』对我完全可以接受。", d:1},
+  {t:"我习惯把大目标拆成一周内能做完、看得见的小块。", d:1},
   {t:"我硬盘里『快做完了』的项目一大堆,却没几个真发售。", d:-1},
-  {t:"『还能再打磨一下』是我永远的口头禅。", d:-1},
-  {t:"我经常推倒重做,总觉得这一版配不上自己。", d:-1},
   {t:"我的 dream game,大概比我的人生还长。", d:-1},
   {t:"我立的 flag 很多,真正完成的很少。", d:-1},
   {t:"项目做到一半,我很容易被新点子带跑、开新坑。", d:-1},
   {t:"『引擎都写好了,就差美术、策划、和开始』——这话很像我。", d:-1},
   {t:"我的版本号好像永远停在 pre-alpha。", d:-1},
-  {t:"我坚信我做的东西迟早会吊打 3A、宇宙第一。", d:-1},
+  {t:"我经常因为目标太大,而迟迟无法进入真正开发阶段。", d:-1},
   {t:"比起『做完』,我更享受『在做』这个过程本身。", d:-1},
+  {t:"一到『收尾、打包、上架』这种环节,我的劲头就突然没了。", d:-1},
+  {t:"一想到要真的『发布』,我就发怵——总觉得还没准备好。", d:-1},
 ];
 
 /* 交错排列,X/Y 各 20 题 = 40 题 */
@@ -703,6 +706,103 @@ function emblem(type, a){
       <path d="M-30,32 q26,24 54,6" fill="none" stroke="#0c0a1a" stroke-width="6" opacity=".4" stroke-linecap="round"/></g>`;
   return `<text x="260" y="270" fill="${a}" font-size="84" text-anchor="middle" filter="url(#glow)">★</text>`;
 }
+/* ===== 25 人格形象「团子」:主题色 + 表情 + 道具,纯 SVG 生成 ===== */
+const AVA_INK = "#16122e";
+const AVA = {
+  "HSLR":["#ff5d6c","money","smirk","megaphone"],
+  "PIVOT":["#ff8a5d","dizzy","flat","recycle"],
+  "FLIP":["#ffa05d","smug","grin","shipbox"],
+  "LOOT":["#ffc24b","money","grin","coins"],
+  "FARM":["#e0b24a","determined","flat","boxstack"],
+  "TODO":["#d79a6a","sleepy","flat","checklist"],
+  "EA":["#ff9a3d","dots","openo","hourglass"],
+  "COPY":["#ff8a5d","smug","cat","copy"],
+  "SAFE":["#d8b46a","dots","smile","shield"],
+  "BOSS":["#ff5d6c","smug","smirk","briefcase"],
+  "WISH":["#8a7fc0","sad","flat","heart"],
+  "DOOM":["#9d7bff","dead","wavy","hourglass"],
+  "POOR":["#6aa67d","cry","wavy","coinfly"],
+  "SHIP":["#36e0c4","determined","grin","rocket"],
+  "GOTY":["#9d7bff","happy","grin","trophy"],
+  "DREAM":["#b58bff","starry","openo","cloud"],
+  "GRND":["#7b8bff","determined","flat","magnifier"],
+  "CULT":["#a05bff","wide","cat","pentagram"],
+  "SOLO":["#36c4e0","closed","smile","wrench"],
+  "GOAT":["#6b9bff","determined","grin","flame"],
+  "GHOST":["#9fb0d0","hollow","wavy","ghost"],
+  "REDO":["#5fa8ff","determined","frown","refresh"],
+  "COZY":["#ff9bb0","happy","smile","cocoa"],
+  "ZEN":["#5fd0a0","closed","smile","leaf"],
+  "ICON":["#36e0c4","closed","smile","halo"],
+};
+function avStar(x){return `<g transform="translate(${x},61)"><path d="M0 -5 l1.4 3 3.3 .3 -2.5 2.2 .7 3.2 -2.9 -1.7 -2.9 1.7 .7 -3.2 -2.5 -2.2 3.3 -.3 z" fill="#fff"/></g>`;}
+function avEyes(e){const K=AVA_INK;switch(e){
+  case "dots": return `<circle cx="54" cy="62" r="3.6" fill="${K}"/><circle cx="76" cy="62" r="3.6" fill="${K}"/>`;
+  case "happy": return `<path d="M49 64 q5 -7 11 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/><path d="M68 64 q5 -7 11 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "closed": return `<path d="M48 62 q6 6 12 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/><path d="M68 62 q6 6 12 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "sad": return `<path d="M46 55 l10 4 M82 55 l-10 4" stroke="${K}" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="54" cy="63" r="3.4" fill="${K}"/><circle cx="76" cy="63" r="3.4" fill="${K}"/>`;
+  case "cry": return `<path d="M46 55 l10 4 M82 55 l-10 4" stroke="${K}" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="54" cy="63" r="3.4" fill="${K}"/><circle cx="76" cy="63" r="3.4" fill="${K}"/><path d="M76 67 q-3 5 0 8 q3 -3 0 -8" fill="#7fd0ff"/>`;
+  case "smug": return `<path d="M48 61 h12 M68 61 h12" stroke="${K}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
+  case "sleepy": return `<path d="M48 62 q6 3 12 0 M68 62 q6 3 12 0" stroke="${K}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  case "determined": return `<path d="M47 56 l11 4 M81 56 l-11 4" stroke="${K}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="54" cy="64" r="3.4" fill="${K}"/><circle cx="76" cy="64" r="3.4" fill="${K}"/>`;
+  case "starry": return avStar(54)+avStar(76);
+  case "dizzy": return `<path d="M50 65 a4.5 4.5 0 1 1 5 -4" fill="none" stroke="${K}" stroke-width="2"/><path d="M72 65 a4.5 4.5 0 1 1 5 -4" fill="none" stroke="${K}" stroke-width="2"/>`;
+  case "money": return `<text x="54" y="67" fill="${K}" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">¥</text><text x="76" y="67" fill="${K}" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">¥</text>`;
+  case "wide": return `<circle cx="54" cy="62" r="6" fill="#fff" stroke="${K}" stroke-width="1.6"/><circle cx="54" cy="63" r="2.6" fill="${K}"/><circle cx="76" cy="62" r="6" fill="#fff" stroke="${K}" stroke-width="1.6"/><circle cx="76" cy="63" r="2.6" fill="${K}"/>`;
+  case "dead": return `<path d="M50 58 l8 8 M58 58 l-8 8" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/><path d="M72 58 l8 8 M80 58 l-8 8" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "hollow": return `<circle cx="54" cy="62" r="5" fill="none" stroke="${K}" stroke-width="2"/><circle cx="76" cy="62" r="5" fill="none" stroke="${K}" stroke-width="2"/>`;
+  default: return `<circle cx="54" cy="62" r="3.6" fill="${K}"/><circle cx="76" cy="62" r="3.6" fill="${K}"/>`;
+}}
+function avMouth(m){const K=AVA_INK;switch(m){
+  case "smile": return `<path d="M54 78 q10 7 20 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "grin": return `<path d="M52 76 q12 11 24 0 z" fill="${K}"/>`;
+  case "smirk": return `<path d="M52 78 q14 9 24 -3" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "wavy": return `<path d="M53 80 q5 -5 10 0 q5 5 10 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "flat": return `<path d="M56 80 h16" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "openo": return `<ellipse cx="64" cy="80" rx="5" ry="6" fill="${K}"/>`;
+  case "cat": return `<path d="M54 78 q5 6 10 0 q5 6 10 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  case "frown": return `<path d="M54 82 q10 -7 20 0" fill="none" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+  default: return `<path d="M56 80 h16" stroke="${K}" stroke-width="2.4" stroke-linecap="round"/>`;
+}}
+function avProp(p){switch(p){
+  case "megaphone": return `<g transform="translate(98,30) rotate(-12)"><path d="M-10 -5 l10 -3 v16 l-10 -3 z" fill="#e8b84b" stroke="#7a5a16" stroke-width="1"/><rect x="-13" y="-3" width="4" height="10" rx="1" fill="#e8b84b" stroke="#7a5a16" stroke-width="1"/><path d="M3 -3 q4 5 0 11" fill="none" stroke="#e8b84b" stroke-width="1.4"/></g>`;
+  case "recycle": return `<g transform="translate(99,31)"><path d="M7 -3 a9 9 0 1 0 2 7" fill="none" stroke="#36e0c4" stroke-width="2.4"/><path d="M8 -9 l0 7 -7 -1" fill="#36e0c4"/></g>`;
+  case "shipbox": return `<g transform="translate(98,32)"><rect x="-9" y="-6" width="18" height="14" rx="1.5" fill="#e8b84b" stroke="#7a5a16" stroke-width="1.2"/><path d="M-9 -1 h18 M0 -6 v14" stroke="#7a5a16" stroke-width="1"/><path d="M0 -13 v6 m-3 -3 l3 -3 3 3" stroke="#36e0c4" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
+  case "coins": return `<g transform="translate(99,33)"><ellipse cx="0" cy="4" rx="9" ry="3" fill="#d8a43b" stroke="#7a5a16" stroke-width="1"/><ellipse cx="0" cy="0" rx="9" ry="3" fill="#ffd76b" stroke="#7a5a16" stroke-width="1"/><ellipse cx="0" cy="-4" rx="9" ry="3" fill="#ffe89b" stroke="#7a5a16" stroke-width="1"/></g>`;
+  case "boxstack": return `<g transform="translate(99,32)"><rect x="-9" y="-2" width="9" height="9" fill="#e8b84b" stroke="#7a5a16" stroke-width="1"/><rect x="1" y="-2" width="9" height="9" fill="#d8a43b" stroke="#7a5a16" stroke-width="1"/><rect x="-4" y="-11" width="9" height="9" fill="#ffd76b" stroke="#7a5a16" stroke-width="1"/></g>`;
+  case "checklist": return `<g transform="translate(99,30)"><rect x="-8" y="-9" width="16" height="20" rx="2" fill="#f0ead8" stroke="#7a5a16" stroke-width="1.2"/><path d="M-2 -4 h6 M-2 1 h6 M-2 6 h4" stroke="#a89a6a" stroke-width="1.3"/><path d="M-6 -4 l1.6 1.6 2.4 -3 M-6 1 l1.6 1.6 2.4 -3" stroke="#36c47a" stroke-width="1.4" fill="none" stroke-linecap="round"/></g>`;
+  case "hourglass": return `<g transform="translate(99,31)"><path d="M-7 -8 h14 l-7 8 -7 -8 z M-7 8 h14 l-7 -8 -7 8 z" fill="#c5b6f0" stroke="#4a3a7a" stroke-width="1.2"/><line x1="-9" y1="-8" x2="9" y2="-8" stroke="#4a3a7a" stroke-width="1.6" stroke-linecap="round"/><line x1="-9" y1="8" x2="9" y2="8" stroke="#4a3a7a" stroke-width="1.6" stroke-linecap="round"/></g>`;
+  case "copy": return `<g transform="translate(99,31)"><rect x="-3" y="-3" width="11" height="13" rx="1.5" fill="#36c4e0" stroke="#0c3d35" stroke-width="1.2"/><rect x="-8" y="-8" width="11" height="13" rx="1.5" fill="#7fe0d0" stroke="#0c3d35" stroke-width="1.2"/></g>`;
+  case "shield": return `<g transform="translate(99,31)"><path d="M0 -9 l9 3 v6 q0 7 -9 11 q-9 -4 -9 -11 v-6 z" fill="#5fa86a" stroke="#244a2c" stroke-width="1.2"/><path d="M-4 -1 l3 4 6 -7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></g>`;
+  case "heart": return `<g transform="translate(98,31)"><path d="M0 9 C-10 1 -9 -8 -2 -6 C0 -5 0 -3 0 -3 C0 -3 0 -5 2 -6 C9 -8 10 1 0 9 Z" fill="#ff7a98" stroke="#7a1f3a" stroke-width="1"/><path d="M8 -8 v6 m-3 -3 h6" stroke="#ff7a98" stroke-width="1.8" stroke-linecap="round"/></g>`;
+  case "rocket": return `<g transform="translate(99,30) rotate(38)"><path d="M0 -10 q5 4 5 12 h-10 q0 -8 5 -12 z" fill="#dfe7ff" stroke="#33405e" stroke-width="1"/><circle cx="0" cy="-1" r="2.4" fill="#36e0c4"/><path d="M-5 2 l-3 5 4 -1 z M5 2 l3 5 -4 -1 z" fill="#ff8a5d"/><path d="M-2 3 l2 6 2 -6" fill="#ffce5a"/></g>`;
+  case "trophy": return `<g transform="translate(99,32)"><path d="M-8 -9 h16 v4 q0 8 -8 8 q-8 0 -8 -8 z" fill="#e8b84b" stroke="#7a5a16" stroke-width="1"/><path d="M-8 -7 q-6 0 -6 4 q0 4 6 4 M8 -7 q6 0 6 4 q0 4 -6 4" fill="none" stroke="#e8b84b" stroke-width="1.5"/><rect x="-3" y="3" width="6" height="6" fill="#e8b84b"/><rect x="-8" y="9" width="16" height="3" rx="1" fill="#e8b84b"/></g>`;
+  case "cloud": return `<g transform="translate(97,31)"><path d="M-10 4 a5 5 0 0 1 1 -10 a6 6 0 0 1 11 -1 a5 5 0 0 1 2 11 z" fill="#cdbff0" stroke="#5a4a8a" stroke-width="1"/><circle cx="-2" cy="7" r="1.5" fill="#cdbff0"/></g>`;
+  case "magnifier": return `<g transform="translate(99,30)"><circle cx="-2" cy="-2" r="7" fill="#dfe7ff" fill-opacity="0.3" stroke="#7b8bff" stroke-width="2"/><line x1="3.5" y1="3.5" x2="10" y2="10" stroke="#7b8bff" stroke-width="2.4" stroke-linecap="round"/><rect x="-4" y="-4" width="4" height="4" fill="#7b8bff"/></g>`;
+  case "pentagram": return `<g transform="translate(99,31)"><circle r="10" fill="#1a1230" stroke="#c08bff" stroke-width="1.4"/><path d="M0 -8 L2.4 -1 9.5 -1 3.8 3.5 6 10 0 6 -6 10 -3.8 3.5 -9.5 -1 -2.4 -1 z" fill="#b07bff"/></g>`;
+  case "wrench": return `<g transform="translate(99,31) rotate(-28)"><path d="M-7 -9 a4.5 4.5 0 0 0 6 6 l7 7 a2.2 2.2 0 0 0 3 -3 l-7 -7 a4.5 4.5 0 0 0 -6 -6 l3 3 -1 3 -3 1 z" fill="#9fd0d8" stroke="#1f4a4a" stroke-width="1"/></g>`;
+  case "flame": return `<g transform="translate(99,32)"><path d="M0 -11 q6 6 5 12 a6 6 0 1 1 -10 0 q-1 -5 5 -12 z" fill="#ff8a3d" stroke="#a04010" stroke-width="1"/><path d="M0 -2 q3 3 2 6 a3 3 0 1 1 -4 0 q0 -3 2 -6 z" fill="#ffd24a"/></g>`;
+  case "ghost": return `<g transform="translate(99,32)"><path d="M-8 6 v-8 a8 8 0 0 1 16 0 v8 l-3 -3 -2.5 3 -3 -3 -2.5 3 -3 -3 z" fill="#e6ecff" stroke="#5a6a8a" stroke-width="1"/><circle cx="-3" cy="-2" r="1.6" fill="#5a6a8a"/><circle cx="3" cy="-2" r="1.6" fill="#5a6a8a"/></g>`;
+  case "refresh": return `<g transform="translate(99,31)"><path d="M8 -2 a9 9 0 1 0 1 7" fill="none" stroke="#5fa8ff" stroke-width="2.4"/><path d="M9 -9 l0 7 -7 -1" fill="#5fa8ff"/></g>`;
+  case "cocoa": return `<g transform="translate(99,33)"><path d="M-7 -2 h12 v5 a6 6 0 0 1 -12 0 z" fill="#a8623a" stroke="#5a2f18" stroke-width="1.2"/><path d="M5 0 a4 4 0 0 1 0 6" fill="none" stroke="#5a2f18" stroke-width="1.2"/><ellipse cx="-1" cy="-2" rx="6" ry="2" fill="#c9855a"/><path d="M-3 -7 q2 -3 0 -5 M1 -7 q2 -3 0 -5" stroke="#fff" stroke-opacity="0.55" stroke-width="1.2" fill="none"/></g>`;
+  case "leaf": return `<g transform="translate(99,31)"><path d="M-6 8 q-4 -15 13 -16 q1 15 -13 16 z" fill="#5fd0a0" stroke="#1f5a40" stroke-width="1"/><path d="M-3 6 q6 -8 10 -11" fill="none" stroke="#1f5a40" stroke-width="1"/></g>`;
+  case "briefcase": return `<g transform="translate(98,30)"><rect x="-11" y="-6" width="22" height="16" rx="2" fill="#e8b84b" stroke="#7a5a16" stroke-width="1.2"/><rect x="-4.5" y="-10" width="9" height="5" rx="1.5" fill="none" stroke="#7a5a16" stroke-width="1.2"/><line x1="-11" y1="1" x2="11" y2="1" stroke="#7a5a16" stroke-width="1"/></g>`;
+  case "coinfly": return `<g transform="translate(100,30) rotate(16)"><circle r="8.5" fill="#e8b84b" stroke="#7a5a16" stroke-width="1"/><text x="0" y="3.5" fill="#7a5a16" font-size="10" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">¥</text><path d="M-8 -3 q-9 -4 -12 1 q8 2 12 -1" fill="#fff" fill-opacity="0.9"/><path d="M8 -3 q9 -4 12 1 q-8 2 -12 -1" fill="#fff" fill-opacity="0.9"/></g>`;
+  default: return "";
+}}
+function buildAvatar(code){
+  const d = AVA[code]; if(!d) return "";
+  const c = d[0], e = d[1], m = d[2], p = d[3];
+  const halo = p==="halo" ? `<ellipse cx="64" cy="30" rx="21" ry="5.5" fill="none" stroke="#ffe08a" stroke-width="3"/>` : "";
+  return `<svg viewBox="0 0 128 128" width="100%" height="100%" role="img" aria-label="${code} 形象">`
+    + `<rect x="6" y="6" width="116" height="116" rx="18" fill="#0e0b22" stroke="${c}" stroke-width="2.5"/>`
+    + `<rect x="11.5" y="11.5" width="105" height="105" rx="13" fill="none" stroke="${c}" stroke-opacity="0.25" stroke-width="1"/>`
+    + halo
+    + `<circle cx="64" cy="66" r="36" fill="${c}"/>`
+    + avEyes(e) + avMouth(m) + (p==="halo" ? "" : avProp(p))
+    + `</svg>`;
+}
+
 function buildCardSVG(p, c){
   const m = CARDS[p.code] || {no:"00",accent:"#ffc24b",accent2:"#36e0c4",subtitle:"LEGENDARY",emblem:"star",flavor:p.tag};
   const a=m.accent, a2=m.accent2;
@@ -870,6 +970,8 @@ const GDTI = (() => {
     let justUnlocked = false;
     if(r.legend && !unlocked.has(r.code)){ unlocked.add(r.code); saveUnlocked(); justUnlocked = true; }
 
+    if(AVA[r.code]){ $("rAvatar").innerHTML = buildAvatar(r.code); $("rAvatar").style.display = "block"; }
+    else { $("rAvatar").innerHTML = ""; $("rAvatar").style.display = "none"; }
     $("rCode").textContent = r.code;
     $("rCode").classList.toggle("cjk", /[\u4e00-\u9fff]/.test(r.code));
     $("rBadge").style.display = r.legend ? "inline-block" : "none";

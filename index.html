@@ -249,6 +249,11 @@
   .join-num .qc{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);}
   @media(max-width:540px){.join-num{width:100%;}}
   .statusbar .grp{cursor:pointer;color:var(--cyan);transition:color .15s;}
+  .cr.clk{cursor:pointer;color:var(--cyan);}
+  .cr.clk:hover{filter:brightness(1.18);border-color:var(--cyan);}
+  .share-hero{margin:18px auto 8px;font-size:12px;padding:15px 22px;}
+  .share-cap{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--dim);
+    letter-spacing:.5px;margin-top:2px;text-align:center;}
   .statusbar .grp:hover{color:var(--amber);}
   .r-actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;}
   .r-actions .btn{flex:1;min-width:160px;}
@@ -286,6 +291,26 @@
   .card-hint{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
   .card-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;}
   .card-btns .btn{flex:1;min-width:120px;font-size:12px;padding:14px 14px;}
+  /* 近期活动:黄按钮 + 居中弹窗 */
+  .act-btn{background:linear-gradient(90deg,var(--amber),#ff8a3d);
+    box-shadow:0 6px 0 #b5701f, 0 0 24px rgba(255,194,75,.42);}
+  .act-btn:active{box-shadow:0 2px 0 #b5701f, 0 0 24px rgba(255,194,75,.42);}
+  .event-modal{position:fixed;top:0;right:0;bottom:0;left:0;z-index:150;display:none;
+    background:rgba(6,4,16,.88);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+    padding:22px 16px;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .event-modal.on{display:flex;animation:fadein .3s;}
+  .event-box{margin:auto;width:100%;max-width:340px;background:#0c0920;border:1px solid #3b3168;
+    border-radius:16px;padding:26px 22px;display:flex;flex-direction:column;gap:18px;align-items:center;
+    box-shadow:0 26px 64px -18px #000, 0 0 40px rgba(255,194,75,.25);
+    animation:cardin .5s cubic-bezier(.2,.9,.2,1);}
+  .event-title{font-family:"Noto Sans SC",sans-serif;font-weight:800;font-size:17px;
+    color:var(--amber);letter-spacing:1px;}
+  .event-body{width:100%;display:flex;flex-direction:column;gap:12px;}
+  .event-item{display:flex;flex-direction:column;gap:5px;padding:14px 16px;background:#0a0817;
+    border:1px solid var(--line-soft);border-radius:10px;border-left:3px solid var(--amber);}
+  .event-date{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--amber);letter-spacing:1px;}
+  .event-name{font-size:15px;color:#fff;font-weight:700;}
+  .event-box .btn{width:100%;}
 
   @media (prefers-reduced-motion: reduce){*{animation-duration:.001s !important;transition-duration:.001s !important;}}
 
@@ -314,7 +339,7 @@
       <span class="sys-name">GDTI</span>
       <span class="sys-sub mono">gamedev-type-indicator</span>
     </span>
-    <span class="cr mono">CR-01 · v0.2</span>
+    <span class="cr mono clk" onclick="GDTI.group()">◉ 交流群 1043785282</span>
   </div>
 
   <div class="body">
@@ -371,6 +396,8 @@
         <div class="r-class" id="rClass"></div>
         <div class="r-tag mono" id="rTag"></div>
         <div class="r-coord mono" id="rCoord"></div>
+        <button class="btn share-hero" onclick="GDTI.copy()">复制结果分享</button>
+        <div class="share-cap mono">📸 截图发群,召唤同类</div>
         <button class="btn card-cta" id="cardCta" style="display:none" onclick="GDTI.showCard()">✦ 放大 / 保存卡片</button>
       </div>
 
@@ -417,7 +444,7 @@
       </div>
 
       <div class="r-actions">
-        <button class="btn" onclick="GDTI.copy()">复制结果分享</button>
+        <button class="btn act-btn" onclick="GDTI.showEvent()">📅 近期活动</button>
         <button class="btn ghost" onclick="GDTI.restart()">↻ 再测一次</button>
       </div>
       <div class="foot mono">GDTI · Game Dev Type Indicator · 纯娱乐,如有雷同纯属你真的是</div>
@@ -426,7 +453,7 @@
   </div>
 
   <div class="statusbar">
-    <span class="grp" onclick="GDTI.group()">▸ QQ群 1043785282</span>
+    <span class="ver mono">CR-01 · v0.2</span>
     <span class="coin">◉ INSERT COIN</span>
   </div>
 </div>
@@ -445,6 +472,19 @@
       <button class="btn ghost" onclick="GDTI.group()">复制群号</button>
       <button class="btn ghost" onclick="GDTI.closeCard()">关闭</button>
     </div>
+  </div>
+</div>
+
+<div class="event-modal" id="eventModal" onclick="if(event.target===this)GDTI.closeEvent()">
+  <div class="event-box">
+    <div class="event-title">📅 近期活动</div>
+    <div class="event-body">
+      <div class="event-item">
+        <span class="event-date">2026.7.3 – 7.5</span>
+        <span class="event-name">CIGA Gamejam</span>
+      </div>
+    </div>
+    <button class="btn ghost" onclick="GDTI.closeEvent()">关闭</button>
   </div>
 </div>
 
@@ -912,6 +952,8 @@ ${current.desc}
       ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); toast("群号已复制 ✓ 打开QQ搜索加入");
     });
   }
+  function showEvent(){ $("eventModal").classList.add("on"); }
+  function closeEvent(){ $("eventModal").classList.remove("on"); }
   function toast(msg){
     const t=$("toast"); t.textContent = msg || "已复制到剪贴板 ✓";
     t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000);
@@ -957,7 +999,7 @@ ${current.desc}
 
   function restart(){ idx=0; answers.length=0; current=null; show("intro"); window.scrollTo({top:0,behavior:"smooth"}); }
 
-  return { start, copy, restart, group, showCard, closeCard, saveCard, back };
+  return { start, copy, restart, group, showCard, closeCard, saveCard, back, showEvent, closeEvent };
 })();
 </script>
 </body>
